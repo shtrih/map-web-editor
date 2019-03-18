@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+
+import "p5/lib/p5";
+
 import './index.css';
 
 class App extends Component {
