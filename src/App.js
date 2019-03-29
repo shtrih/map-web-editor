@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
-import "p5/lib/p5";
+import P5Wrapper from 'react-p5-wrapper';
+import sketch from './sketch.js';
 
 import './index.css';
 
@@ -11,6 +12,8 @@ class App extends Component {
         this.state = {
             inMainMenu: true,
             mainMenuState: null,
+            width:  30,
+            height: 30
         };
         this.mainMenuF = {
             createNew: () => {
@@ -30,7 +33,7 @@ class App extends Component {
                     <div class="container">
                         <h3 className="center z-depth-3" style={{padding: "1.2rem", backgroundColor: "rgba(255, 255, 255, 0.815)"}}>Добро
                             пожаловать в редактор тайлов для SCP Community!</h3>
-                        
+
                         <div class="row">
                             <div class="col s6 offset-s3">
                                 <div class="card blue-grey darken-1" id="mainMenuCard">
@@ -53,17 +56,20 @@ class App extends Component {
         else {
             return(
                 <div id="workScreen">
-                    
+                  <P5Wrapper sketch={sketch}
+                             width={this.state.width}
+                             height={this.state.height}
+                  />
                 </div>
             );
         }
     }
     MenuContent(props) {
-        if (props.state == null) 
+        if (props.state == null)
             return <p class="center">Создайте новый объект или загрузите существующий файл</p>
         else if (props.state === "createNew")
             return (
-                <div>    
+                <div>
                     <div class="row">
                         <div class="input-field col s12">
                             <input id="widthInp" type="number" class="validate" />
@@ -98,8 +104,6 @@ class App extends Component {
             height,
             inMainMenu: false
         });
-
-        window.mySetup(width, height);
     }
 }
 
