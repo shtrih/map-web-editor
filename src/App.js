@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 
 import P5Wrapper from 'react-p5-wrapper';
 import sketch from './sketch.js';
+import AssetGroups from './components/AssetGroups';
+import AssetObjects from './components/AssetObjects';
 
 import M from "materialize-css";
 
@@ -11,11 +13,14 @@ class App extends Component {
     constructor(props) {
         super(props);
 
+        this.onSelectAssetGroup = this.onSelectAssetGroup.bind(this);
+
         this.state = {
             inMainMenu: true,
             mainMenuState: null,
             width:  30,
-            height: 30
+            height: 30,
+            activeAssetGroup: null
         };
         this.mainMenuF = {
             createNew: () => {
@@ -82,20 +87,24 @@ class App extends Component {
                         <div className="row">
                             <div className="col s12 noPadding">
                                 <ul className="tabs" id="instrumentTabsUl">
-                                    <li className="tab col s4"><a className="active" href="#tools">Tools</a></li>
+                                    <li className="tab col s4"><a href="#tools">Tools</a></li>
                                     <li className="tab col s4"><a href="#layers">Layers</a></li>
-                                    <li className="tab col s4"><a href="#assets">Assets</a></li>
+                                    <li className="tab col s4"><a className="active" href="#assets">Assets</a></li>
                                 </ul>
                             </div>
                             <div id="tools" className="col s12"><h3 className="center-align">Tools</h3></div>
                             <div id="layers" className="col s12"><h3 className="center-align">Layers</h3></div>
-                            <div id="assets" className="col s12"><h3 className="center-align">Assets</h3></div>
+                            <div id="assets" className="col s12">
+                                <AssetObjects
+                                    objectsList={this.state.activeAssetGroup}
+                                    clickHandler={() => false}
+                                />
+                            </div>
                         </div>
                     </div>
                     <div id="assetGroups">
-                        <h3 className="center-align">Asset Groups</h3>
+                        <AssetGroups clickHandler={this.onSelectAssetGroup} />
                     </div>
-        
                 </div>
             );
         }
@@ -139,6 +148,12 @@ class App extends Component {
             width,
             height,
             inMainMenu: false
+        });
+    }
+
+    onSelectAssetGroup(event) {
+        this.setState({
+            activeAssetGroup: event.target.dataset.objects
         });
     }
 }

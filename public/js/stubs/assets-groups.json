@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Стены",
+        "objects": "assets-walls"
+    },
+    {
+        "name": "Полы",
+        "objects": "assets-floors"
+    }
+]
