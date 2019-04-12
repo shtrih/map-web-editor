@@ -1,31 +1,27 @@
 export default function sketch(p) {
-    let loopAllowed = false;
-    let mapWidth = 30;
-    let mapHeight = 30;
-    let zoomLevel = 1;
-
-    let dragMode = "move";
-
-    let mapArray = [];
-
-
-    const tileSize = 10;
-    let pixelOffsetX = 0,
-        pixelOffsetY = 0;
+    let loopAllowed = false,
+        mapWidth = 30,
+        mapHeight = 30,
+        zoomLevel = 1,
+        dragMode = "move",
+        mapArray = [],
+        pixelOffsetX = 0,
+        pixelOffsetY = 0
+    ;
+    const tileSize = 100,
+        cursorTileSize = 50;
 
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
-        console.log({parentEl, clW: parentEl.clientWidth, clH: parentEl.clientHeight});
         p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
 
-        pixelOffsetX = p.width / 2
+        pixelOffsetX = p.width / 2;
 
         loopAllowed = true;
 
-        for (let i = 0; i < mapHeight; i++)
+        for (let i = 0; i < mapHeight; i++) {
             mapArray.push(new Array(mapWidth));
-
-        console.table(mapArray);
+        }
     };
 
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
@@ -48,7 +44,7 @@ export default function sketch(p) {
         //     p.line(0, y, p.width, y);
         // }
 
-        p.ellipse(p.mouseX, p.mouseY, 5, 5);
+        p.rect(p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
     };
 
     function analyzeCursor() {
@@ -56,13 +52,16 @@ export default function sketch(p) {
         const adjX = (p.mouseX - pixelOffsetX);
         const adjY = (p.mouseY - pixelOffsetY);
 
-        if (adjX < 0 || adjY < 0) return;
+        if (adjX < 0 || adjY < 0) {
+            return;
+        }
 
         const currRow = p.floor(adjX / adjTileSize);
         const currCol = p.floor(adjY / adjTileSize);
 
-        if (currRow >= mapArray.length || currCol >= mapArray[currRow].length)
+        if (currRow >= mapArray.length || currCol >= mapArray[currRow].length) {
             return;
+        }
 
         // console.log({
         //     tileSize,
@@ -79,39 +78,40 @@ export default function sketch(p) {
 
         if (p.abs(adjX - adjTileSize * mapArray[currRow].length) < 10) {
             p.cursor('col-resize');
-            // console.log("Hello")
             dragMode = "resize";
-        } else if (p.abs(adjY - adjTileSize * mapArray.length) < 10) {
+        }
+        else if (p.abs(adjY - adjTileSize * mapArray.length) < 10) {
             p.cursor('row-resize');
             dragMode = "resize";
-        } else {
+        }
+        else {
             p.cursor('default');
             dragMode = "move";
         }
     }
 
     function renderBoard() {
-        const adj = (val) => val * tileSize * zoomLevel;
+        const tileSizeZoomed = tileSize * zoomLevel;
+        let x, y;
 
         p.textSize(tileSize / 2 * zoomLevel);
 
-        for (let i = 0; i < mapArray.length; i++)
+        for (let i = 0; i < mapArray.length; i++) {
             for (let j = 0; j < mapArray[i].length; j++) {
-                let tile = mapArray[i][j];
+                x = j * tileSizeZoomed + pixelOffsetX;
+                y = i * tileSizeZoomed + pixelOffsetY;
+                p.rect(x, y, tileSizeZoomed, tileSizeZoomed);
 
-                let x = adj(j) + pixelOffsetX;
-                let y = adj(i) + pixelOffsetY;
-                p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
-
-                let hS = (tileSize * zoomLevel) / 2;
+                let hS = tileSizeZoomed / 2;
 
                 if (j === 0) {
-                    p.text(`${i + 1}`, x - hS, y + hS);
+                    p.text(i + 1, x - hS, y + hS);
                 }
                 if (i === 0) {
-                    p.text(`${j + 1}`, x + hS, y - hS);
+                    p.text(j + 1, x + hS, y - hS);
                 }
             }
+        }
     }
 
     // p.windowResized = function () {
@@ -119,39 +119,49 @@ export default function sketch(p) {
     // };
 
     p.mouseWheel = function (event) {
-        if (p.mouseX < 0 || p.mouseX > p.width ||
-            p.mouseY < 0 || p.mouseY > p.height) return;
+        if (p.mouseX < 0
+            || p.mouseX > p.width
+            || p.mouseY < 0
+            || p.mouseY > p.height
+        ) {
+            return;
+        }
 
-        const adjX = (p.mouseX - pixelOffsetX);
-        const adjY = (p.mouseY - pixelOffsetY);
+        const adjX = (p.mouseX - pixelOffsetX),
+            adjY = (p.mouseY - pixelOffsetY),
+            zoomCoefficient = 1.1
+        ;
 
         let postZoomX = 0,
-            postZoomY = 0;    
-        
+            postZoomY = 0;
+
         if (event.deltaY < 0) {
-            zoomLevel *= 1.1;
-            postZoomX = adjX * 1.1;
-            postZoomY = adjY * 1.1;
-        } else {
-            zoomLevel /= 1.1;
-            postZoomX = adjX / 1.1;
-            postZoomY = adjY / 1.1;
+            zoomLevel *= zoomCoefficient;
+            postZoomX = adjX * zoomCoefficient;
+            postZoomY = adjY * zoomCoefficient;
         }
-        
+        else {
+            zoomLevel /= zoomCoefficient;
+            postZoomX = adjX / zoomCoefficient;
+            postZoomY = adjY / zoomCoefficient;
+        }
+
         pixelOffsetX += adjX - postZoomX;
         pixelOffsetY += adjY - postZoomY;
     };
 
     p.mouseDragged = function (event) {
-        if (p.mouseX < 0 || p.mouseX > p.width ||
-            p.mouseY < 0 || p.mouseY > p.height) return;
+        if (p.mouseX < 0
+            || p.mouseX > p.width
+            || p.mouseY < 0
+            || p.mouseY > p.height
+        ) {
+            return;
+        }
 
         if (dragMode === "move") {
-
             pixelOffsetX += p.mouseX - p.pmouseX;
             pixelOffsetY += p.mouseY - p.pmouseY;
-        } else {
-
         }
     };
 }
