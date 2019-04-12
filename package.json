@@ -5,6 +5,7 @@
   "dependencies": {
     "materialize-css": "^1.0.0-rc.2",
     "p5": "^0.7.3",
+    "prop-types": "^15.7.2",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
     "react-p5-wrapper": "0.0.4",

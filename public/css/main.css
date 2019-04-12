@@ -49,7 +49,6 @@ body {
 }
 
 #instrumentTabs {
-    background-color: rgba(192, 210, 30, 0.507);
     position: absolute;
     width: 20%;
     height: 60%;
@@ -59,7 +58,6 @@ body {
 }
 
 #assetGroups {
-    background-color: darkkhaki;
     position: absolute;
     width: 20%;
     height: 60%;
