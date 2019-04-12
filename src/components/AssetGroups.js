@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 export default class AssetGroups extends React.Component {
     constructor(props) {
@@ -65,3 +66,7 @@ export default class AssetGroups extends React.Component {
         }
     }
 }
+
+AssetGroups.propTypes = {
+    clickHandler: PropTypes.func
+};
