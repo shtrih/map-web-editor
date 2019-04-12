@@ -13,6 +13,10 @@ body {
     height: 100%;
 }
 
+.noPadding {
+    padding: 0!important;
+}
+
 #startScreen {
     background-image: url('/images/software.png');
     background-repeat: no-repeat;
@@ -20,4 +24,46 @@ body {
     background-size: cover;
 
     background-color: #4b5a6d;
+}
+
+#workscreen {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+#mapEditor {
+    background-color: rgba(85, 26, 221, 0.301);
+    height: 100%;
+    width: 60%;
+}
+
+#modelPreview {
+    background-color: rgba(50, 50, 211, 0.397);
+    position: absolute;
+    width: 40%;
+    height: 40%;
+
+    top: 0;
+    right: 0;
+}
+
+#instrumentTabs {
+    background-color: rgba(192, 210, 30, 0.507);
+    position: absolute;
+    width: 20%;
+    height: 60%;
+
+    top: 40%;
+    right: 20%;
+}
+
+#assetGroups {
+    background-color: darkkhaki;
+    position: absolute;
+    width: 20%;
+    height: 60%;
+
+    top: 40%;
+    right: 0;
 }

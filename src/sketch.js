@@ -1,102 +1,157 @@
+export default function sketch(p) {
+    let loopAllowed = false;
+    let mapWidth = 30;
+    let mapHeight = 30;
+    let zoomLevel = 1;
 
-export default function sketch (p) {
-  let loopAllowed = false;
-  let mapWidth = 30;
-  let mapHeight = 30;
-  let zoomLevel = 1;
+    let dragMode = "move";
 
-  const tileSize = 10;
-  let pixelOffsetX = 100,
-    pixelOffsetY = 100;
+    let mapArray = [];
 
-  p.setup = function() {
-    const parentEl = document.getElementById('workScreen');
-    p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
-    loopAllowed = true;
-  };
 
-  p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
-    console.log('myCustomRedrawAccordingToNewPropsHandler', props);
-  };
+    const tileSize = 10;
+    let pixelOffsetX = 0,
+        pixelOffsetY = 0;
 
-  p.draw = function() {
-    if (!loopAllowed) {
-      return;
-    }
-    analyzeCursor();
-    p.background(100);
+    p.setup = function () {
+        const parentEl = document.getElementById('mapEditor');
+        console.log({parentEl, clW: parentEl.clientWidth, clH: parentEl.clientHeight});
+        p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
 
-    renderBoard();
-      for (let i = 0; i < 10; i++) {
-        let x = i * (tileSize * zoomLevel) + pixelOffsetX;
-        p.line(x, 0, x, p.height);
-        let y = i * (tileSize * zoomLevel) + pixelOffsetY;
-        p.line(0, y, p.width, y);
-      }
+        pixelOffsetX = p.width / 2
 
-    p.ellipse(p.mouseX, p.mouseY, 5, 5);
-  };
+        loopAllowed = true;
 
-  function analyzeCursor() {
-    if ((p.mouseX % p.floor(tileSize * zoomLevel + pixelOffsetX)) < 15) {
-      p.cursor('col-resize');
-      // console.log("Hello")
-    }
-    else if ((p.mouseY % p.floor(tileSize * zoomLevel + pixelOffsetY)) < 15) {
-      p.cursor('row-resize');
-    }
-    else {
-      p.cursor('default');
-    }
-  }
+        for (let i = 0; i < mapHeight; i++)
+            mapArray.push(new Array(mapWidth));
 
-  function renderBoard() {
-    const adj = (val) => val * tileSize * zoomLevel;
+        console.table(mapArray);
+    };
 
-    p.textSize(tileSize / 2 * zoomLevel);
+    p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
+        console.log('myCustomRedrawAccordingToNewPropsHandler', props);
+    };
 
-    for (let i = 0; i < mapHeight; i++) {
-      for (let j = 0; j < mapWidth; j++) {
-        let x = adj(j) + pixelOffsetX;
-        let y = adj(i) + pixelOffsetY;
-        p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
-
-        let hS = (tileSize * zoomLevel) / 2;
-
-        if (j === 0) {
-          p.text(`${i + 1}`, x - hS, y + hS);
+    p.draw = function () {
+        if (!loopAllowed) {
+            return;
         }
-        if (i === 0) {
-          p.text(`${j + 1}`, x + hS, y - hS);
+
+        // analyzeCursor();
+        p.background(150);
+
+        renderBoard();
+        // for (let i = 0; i < 10; i++) {
+        //     let x = i * (tileSize * zoomLevel) + pixelOffsetX;
+        //     p.line(x, 0, x, p.height);
+        //     let y = i * (tileSize * zoomLevel) + pixelOffsetY;
+        //     p.line(0, y, p.width, y);
+        // }
+
+        p.ellipse(p.mouseX, p.mouseY, 5, 5);
+    };
+
+    function analyzeCursor() {
+        const adjTileSize = (tileSize * zoomLevel);
+        const adjX = (p.mouseX - pixelOffsetX);
+        const adjY = (p.mouseY - pixelOffsetY);
+
+        if (adjX < 0 || adjY < 0) return;
+
+        const currRow = p.floor(adjX / adjTileSize);
+        const currCol = p.floor(adjY / adjTileSize);
+
+        if (currRow >= mapArray.length || currCol >= mapArray[currRow].length)
+            return;
+
+        // console.log({
+        //     tileSize,
+        //     zoomLevel,
+        //     mouseX: p.mouseX,
+        //     mouseY: p.mouseY,
+        //     pixelOffsetX,
+        //     pixelOffsetY,
+        //     adjX,
+        //     adjY,
+        //     currRow,
+        //     currCol
+        // });
+
+        if (p.abs(adjX - adjTileSize * mapArray[currRow].length) < 10) {
+            p.cursor('col-resize');
+            // console.log("Hello")
+            dragMode = "resize";
+        } else if (p.abs(adjY - adjTileSize * mapArray.length) < 10) {
+            p.cursor('row-resize');
+            dragMode = "resize";
+        } else {
+            p.cursor('default');
+            dragMode = "move";
         }
-      }
     }
-  }
 
-  // p.windowResized = function () {
-  //   p.resizeCanvas(windowWidth, windowHeight);
-  // };
+    function renderBoard() {
+        const adj = (val) => val * tileSize * zoomLevel;
 
-  p.keyReleased = function() {
-    if (p.key === "+") {
-      zoomLevel *= 1.1;
-    }
-    if (p.key === "-") {
-      zoomLevel /= 1.1;
-    }
-  };
+        p.textSize(tileSize / 2 * zoomLevel);
 
-  p.mouseWheel = function(event) {
-    if (event.deltaY < 0) {
-      zoomLevel *= 1.1;
-    }
-    else {
-      zoomLevel /= 1.1;
-    }
-  };
+        for (let i = 0; i < mapArray.length; i++)
+            for (let j = 0; j < mapArray[i].length; j++) {
+                let tile = mapArray[i][j];
 
-  p.mouseDragged = function (event) {
-    pixelOffsetX += p.mouseX - p.pmouseX;
-    pixelOffsetY += p.mouseY - p.pmouseY;
-  }
-};
+                let x = adj(j) + pixelOffsetX;
+                let y = adj(i) + pixelOffsetY;
+                p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
+
+                let hS = (tileSize * zoomLevel) / 2;
+
+                if (j === 0) {
+                    p.text(`${i + 1}`, x - hS, y + hS);
+                }
+                if (i === 0) {
+                    p.text(`${j + 1}`, x + hS, y - hS);
+                }
+            }
+    }
+
+    // p.windowResized = function () {
+    //     p.resizeCanvas(p.windowWidth * (8 / 12), p.windowHeight);
+    // };
+
+    p.mouseWheel = function (event) {
+        if (p.mouseX < 0 || p.mouseX > p.width ||
+            p.mouseY < 0 || p.mouseY > p.height) return;
+
+        const adjX = (p.mouseX - pixelOffsetX);
+        const adjY = (p.mouseY - pixelOffsetY);
+
+        let postZoomX = 0,
+            postZoomY = 0;    
+        
+        if (event.deltaY < 0) {
+            zoomLevel *= 1.1;
+            postZoomX = adjX * 1.1;
+            postZoomY = adjY * 1.1;
+        } else {
+            zoomLevel /= 1.1;
+            postZoomX = adjX / 1.1;
+            postZoomY = adjY / 1.1;
+        }
+        
+        pixelOffsetX += adjX - postZoomX;
+        pixelOffsetY += adjY - postZoomY;
+    };
+
+    p.mouseDragged = function (event) {
+        if (p.mouseX < 0 || p.mouseX > p.width ||
+            p.mouseY < 0 || p.mouseY > p.height) return;
+
+        if (dragMode === "move") {
+
+            pixelOffsetX += p.mouseX - p.pmouseX;
+            pixelOffsetY += p.mouseY - p.pmouseY;
+        } else {
+
+        }
+    };
+}
