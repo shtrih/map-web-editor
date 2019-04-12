@@ -4,10 +4,9 @@ import P5Wrapper from 'react-p5-wrapper';
 import sketch from './sketch.js';
 
 import AssetGroups from './components/AssetGroups';
-import AssetObjects from './components/AssetObjects';
+import InstrumentTabs from './components/InstrumentTabs';
 
 import 'materialize-css/dist/css/materialize.min.css'
-import M from 'materialize-css';
 
 import './index.css';
 
@@ -65,12 +64,6 @@ class App extends Component {
             );
         }
 
-        let timer = setInterval(() => {
-            if (document.querySelector('#instrumentTabsUl') == null) return;
-            M.Tabs.init(document.querySelector('#instrumentTabsUl'));
-            clearInterval(timer);
-        }, 50);
-
         return (
             <div id="workscreen" className="row">
                 <div id="mapEditor" className="noPadding">
@@ -83,27 +76,13 @@ class App extends Component {
                 <div id="modelPreview">
                     <h3 className="center-align">3D model preview</h3>
                 </div>
-                <div id="instrumentTabs">
-                    <div className="row">
-                        <div className="col s12 noPadding">
-                            <ul className="tabs" id="instrumentTabsUl">
-                                <li className="tab col s4"><a href="#tools">Tools</a></li>
-                                <li className="tab col s4"><a href="#layers">Layers</a></li>
-                                <li className="tab col s4"><a className="active" href="#assets">Assets</a></li>
-                            </ul>
-                        </div>
-                        <div id="tools" className="col s12"><h3 className="center-align">Tools</h3></div>
-                        <div id="layers" className="col s12"><h3 className="center-align">Layers</h3></div>
-                        <div id="assets" className="col s12">
-                            <AssetObjects
-                                objectsList={this.state.activeAssetGroup}
-                                clickHandler={() => false}
-                            />
-                        </div>
-                    </div>
+                <div id="instrumentTabs" className="row">
+                    <InstrumentTabs activeAssetGroup={this.state.activeAssetGroup} />
                 </div>
-                <div id="assetGroups">
-                    <AssetGroups clickHandler={this.onSelectAssetGroup} />
+                <div id="assetGroups" className="row">
+                    <div className="col s12">
+                        <AssetGroups clickHandler={this.onSelectAssetGroup} />
+                    </div>
                 </div>
             </div>
         );
