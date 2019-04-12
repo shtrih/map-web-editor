@@ -3,7 +3,8 @@ import React, { Component } from 'react';
 import P5Wrapper from 'react-p5-wrapper';
 import sketch from './sketch.js';
 
-import M from "materialize-css";
+import 'materialize-css/dist/css/materialize.min.css'
+import M from 'materialize-css';
 
 import './index.css';
 
