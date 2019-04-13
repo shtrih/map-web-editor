@@ -50,7 +50,7 @@ export default class AssetObjects extends React.Component {
         }
         event.target.classList.add('active');
 
-        this.props.clickHandler(event);
+        this.props.clickHandler(event, this.state.items[ event.target.dataset.itemKey ]);
 
         return false;
     }
