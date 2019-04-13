@@ -91,7 +91,9 @@ export default function sketch(p) {
     }
 
     function renderBoard() {
-        const tileSizeZoomed = tileSize * zoomLevel;
+        const tileSizeZoomed = tileSize * zoomLevel,
+            textOffset = tileSizeZoomed / 2
+        ;
         let x, y;
 
         p.textSize(tileSize / 2 * zoomLevel);
@@ -102,13 +104,11 @@ export default function sketch(p) {
                 y = i * tileSizeZoomed + pixelOffsetY;
                 p.rect(x, y, tileSizeZoomed, tileSizeZoomed);
 
-                let hS = tileSizeZoomed / 2;
-
                 if (j === 0) {
-                    p.text(i + 1, x - hS, y + hS);
+                    p.text(i + 1, x - textOffset, y + textOffset);
                 }
                 if (i === 0) {
-                    p.text(j + 1, x + hS, y - hS);
+                    p.text(j + 1, x + textOffset, y - textOffset);
                 }
             }
         }
