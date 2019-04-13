@@ -8,8 +8,8 @@ export default function sketch(p) {
         pixelOffsetX = 0,
         pixelOffsetY = 0,
 
-        activeAsset,
-        activeImage
+        activeAsset = null,
+        activeImage = null
     ;
     const tileSize = 100,
         cursorTileSize = 50;
@@ -21,7 +21,7 @@ export default function sketch(p) {
         // TODO: Replace this with code that centers the field
         pixelOffsetX = 100;
         pixelOffsetY = 100;
-        zoomLevel = 2.5;
+        zoomLevel = 0.5;
 
         loopAllowed = true;
 
@@ -60,6 +60,7 @@ export default function sketch(p) {
             p.image(activeImage, p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
         }
         else {
+            p.fill(255);
             p.rect(p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
         }
     };
@@ -107,11 +108,15 @@ export default function sketch(p) {
         }
     }
 
+    function adj(val) {
+        return val * tileSize * zoomLevel;
+    }
+
     function renderBoard() {
         const tileSizeZoomed = tileSize * zoomLevel,
             textOffset = tileSizeZoomed / 2
         ;
-        let x, y;
+        
 
         p.textSize(tileSize / 2 * zoomLevel);
 
@@ -124,15 +129,11 @@ export default function sketch(p) {
         // Проанализировать и нарисовать сверху поля необходимые тайлы
         for (let i = 0; i < mapArray.length; i++)
             for (let j = 0; j < mapArray[i].length; j++) {
-                x = j * tileSizeZoomed + pixelOffsetX;
-                y = i * tileSizeZoomed + pixelOffsetY;
-                p.rect(x, y, tileSizeZoomed, tileSizeZoomed);
+                let tile = mapArray[i][j];
 
                 let x = adj(j) + pixelOffsetX;
                 let y = adj(i) + pixelOffsetY;
                 //p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
-
-                let hS = (tileSize * zoomLevel) / 2;
 
                 if (j === 0) {
                     p.fill(0);
@@ -146,7 +147,6 @@ export default function sketch(p) {
                 }
             }
         }
-    }
 
     // p.windowResized = function () {
     //     p.resizeCanvas(p.windowWidth * (8 / 12), p.windowHeight);
