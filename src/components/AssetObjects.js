@@ -50,7 +50,7 @@ export default class AssetObjects extends React.Component {
         }
         event.target.classList.add('active');
 
-        this.props.clickHandler(event);
+        this.props.clickHandler(event, this.state.items[ event.target.dataset.itemKey ]);
 
         return false;
     }
@@ -70,8 +70,8 @@ export default class AssetObjects extends React.Component {
         } else {
             return (
                 <div className="collection">
-                    {items.map(item => (
-                        <a key={item.name} href="#!" onClick={this.clickHandler} className="collection-item">{item.name}</a>
+                    {items.map((item, i) => (
+                        <a key={item.name} href="#!" onClick={this.clickHandler} className="collection-item" data-item-key={i}>{item.name}</a>
                     ))}
                 </div>
             );

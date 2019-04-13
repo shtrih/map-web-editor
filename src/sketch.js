@@ -6,7 +6,10 @@ export default function sketch(p) {
         dragMode = "move",
         mapArray = [],
         pixelOffsetX = 0,
-        pixelOffsetY = 0
+        pixelOffsetY = 0,
+
+        activeAsset,
+        activeImage
     ;
     const tileSize = 100,
         cursorTileSize = 50;
@@ -27,6 +30,12 @@ export default function sketch(p) {
 
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
         console.log('myCustomRedrawAccordingToNewPropsHandler', props);
+
+        if (props.activeAsset) {
+            p.loadImage(`/images/objects/${props.activeAsset.img}.jpg`, img => {
+                activeImage = img;
+            });
+        }
     };
 
     p.draw = function () {
@@ -45,7 +54,12 @@ export default function sketch(p) {
         //     p.line(0, y, p.width, y);
         // }
 
-        p.rect(p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
+        if (activeImage) {
+            p.image(activeImage, p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
+        }
+        else {
+            p.rect(p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
+        }
     };
 
     function analyzeCursor() {
