@@ -11,8 +11,8 @@ export default function sketch(p) {
         activeAsset = null,
         activeImage = null
     ;
-    const tileSize = 100,
-        cursorTileSize = 50;
+    const tileSize = 100;
+        // cursorTileSize = 50;
 
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
@@ -46,6 +46,7 @@ export default function sketch(p) {
         }
 
         // analyzeCursor();
+        // analyzeKeyboard();
         p.background(150);
 
         renderBoard();
@@ -56,6 +57,8 @@ export default function sketch(p) {
         //     p.line(0, y, p.width, y);
         // }
 
+        let cursorTileSize = tileSize * zoomLevel;
+
         if (activeImage) {
             p.image(activeImage, p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
         }
@@ -64,6 +67,13 @@ export default function sketch(p) {
             p.rect(p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
         }
     };
+
+    // function analyzeKeyboard() {
+    //     // Space
+    //     if (p.keyIsDown(32)) {
+    //         p.cursor
+    //     }
+    // }
 
     function analyzeCursor() {
         const adjTileSize = (tileSize * zoomLevel);

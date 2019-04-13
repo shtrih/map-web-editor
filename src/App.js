@@ -92,7 +92,7 @@ class App extends Component {
                     />
                 </div>
                 <div id="assetGroups" className="row">
-                    <div className="col s12">
+                    <div className="col s12 noPadding">
                         <AssetGroups clickHandler={this.onSelectAssetGroup} />
                     </div>
                     {/* <p className="center-align">Это создаст базовое поле 30x30, которое возможно расширить на кратное 
