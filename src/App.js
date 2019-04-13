@@ -17,7 +17,7 @@ class App extends Component {
         this.onSelectAssetGroup = this.onSelectAssetGroup.bind(this);
 
         this.state = {
-            inMainMenu: true,
+            inMainMenu: false,
             mainMenuState: null,
             width:  30,
             height: 30,
@@ -81,10 +81,6 @@ class App extends Component {
                         <h3 className="center-align">3D model preview</h3>
                     </div>
                     <div id="instrumentTabs">
-                        {/* <h3 className="center-align">Instruments</h3> */}
-                        <script>
-                            console.log("PLEASE");
-                        </script>
                         <div className="row">
                             <div className="col s12 noPadding">
                                 <ul className="tabs" id="instrumentTabsUl">
@@ -93,7 +89,9 @@ class App extends Component {
                                     <li className="tab col s4"><a className="active" href="#assets">Assets</a></li>
                                 </ul>
                             </div>
-                            <div id="tools" className="col s12"><h3 className="center-align">Tools</h3></div>
+                            <div id="tools" className="col s12">
+                                <h3 className="center-align">Tools</h3>
+                            </div>
                             <div id="layers" className="col s12"><h3 className="center-align">Layers</h3></div>
                             <div id="assets" className="col s12">
                                 <AssetObjects
@@ -129,7 +127,8 @@ class App extends Component {
                             <label for="heightInp">Высота карты</label>
                         </div>
                     </div>
-                    <p className="center">Это создаст карту в виде прямоугольника X*Y (оставьте пустым для 1x1); Заметьте, что каждую отдельную строчку и столбец можно будет вытягивать и сжимать по требованию</p>
+                    <p className="center-align">Это создаст базовое поле 30x30, которое возможно расширить на кратное 
+                    30-ти клеток вправо и кратное 30-ти клеток вниз. Оставьте пустым для 30x30 поля</p>
                     <div className="row">
                         <a href="#!" className="center-align waves-effect waves-light btn" onClick={() => props.elt.startNew(props.elt)}>Создать</a>
                     </div>

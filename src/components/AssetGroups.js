@@ -57,9 +57,9 @@ export default class AssetGroups extends React.Component {
             );
         } else {
             return (
-                <div className="collection">
+                <div className="collection noPadding noMargin">
                     {items.map(item => (
-                        <a key={item.name} href="#!" onClick={this.clickHandler} className="collection-item" data-objects={item.objects}>{item.name}</a>
+                        <a key={item.name} href="#!" onClick={this.clickHandler} className="collection-item center-align" data-objects={item.objects}>{item.name}</a>
                     ))}
                 </div>
             );

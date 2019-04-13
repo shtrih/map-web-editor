@@ -17,6 +17,14 @@ body {
     padding: 0!important;
 }
 
+.noMargin {
+    margin: 0!important;
+}
+
+.noMarginTop {
+    margin-top: 0!important;
+}
+
 #startScreen {
     background-image: url('/images/software.png');
     background-repeat: no-repeat;
@@ -55,6 +63,8 @@ body {
 
     top: 40%;
     right: 20%;
+
+    border-right: 1px solid #e0e0e0;
 }
 
 #assetGroups {

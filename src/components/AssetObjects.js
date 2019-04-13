@@ -66,12 +66,17 @@ export default class AssetObjects extends React.Component {
                 </div>
             );
         } else if (!isLoaded) {
-            return null;
+            return (
+                <div className="center-align">
+                    <h3>Пока пусто...</h3>
+                    <p>Выберите что-нибудь из списка объектов правее и начните строить ваше помещение!</p>
+                </div>
+            );
         } else {
             return (
-                <div className="collection">
+                <div className="collection noPadding">
                     {items.map(item => (
-                        <a key={item.name} href="#!" onClick={this.clickHandler} className="collection-item">{item.name}</a>
+                        <a key={item.name} href="#!" onClick={this.clickHandler} className="collection-item center-align">{item.name}</a>
                     ))}
                 </div>
             );

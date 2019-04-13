@@ -18,7 +18,10 @@ export default function sketch(p) {
         console.log({parentEl, clW: parentEl.clientWidth, clH: parentEl.clientHeight});
         p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
 
-        pixelOffsetX = p.width / 2
+        // TODO: Replace this with code that centers the field
+        pixelOffsetX = 100;
+        pixelOffsetY = 100;
+        zoomLevel = 2.5;
 
         loopAllowed = true;
 
@@ -48,6 +51,7 @@ export default function sketch(p) {
         //     p.line(0, y, p.width, y);
         // }
 
+        p.fill(255);
         p.ellipse(p.mouseX, p.mouseY, 5, 5);
     };
 
@@ -95,21 +99,32 @@ export default function sketch(p) {
 
         p.textSize(tileSize / 2 * zoomLevel);
 
+        // TODO: Базироваться на текущих размерах карты
+        p.fill(255);
+        p.rect(pixelOffsetX, pixelOffsetY, 
+            adj(30),
+            adj(30));
+
+        // Проанализировать и нарисовать сверху поля необходимые тайлы
         for (let i = 0; i < mapArray.length; i++)
             for (let j = 0; j < mapArray[i].length; j++) {
                 let tile = mapArray[i][j];
 
                 let x = adj(j) + pixelOffsetX;
                 let y = adj(i) + pixelOffsetY;
-                p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
+                //p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
 
                 let hS = (tileSize * zoomLevel) / 2;
 
                 if (j === 0) {
+                    p.fill(0);
                     p.text(`${i + 1}`, x - hS, y + hS);
+                    p.line(pixelOffsetX, y, pixelOffsetX + adj(30), y);
                 }
                 if (i === 0) {
+                    p.fill(0);
                     p.text(`${j + 1}`, x + hS, y - hS);
+                    p.line(x, pixelOffsetY, x, pixelOffsetY + adj(30));
                 }
             }
     }
