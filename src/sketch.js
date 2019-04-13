@@ -7,9 +7,14 @@ export default function sketch(p) {
         mapArray = [],
         pixelOffsetX = 0,
         pixelOffsetY = 0,
+        movingCanvas = false,
+        dragging = false,
+        
+        ghostFigure = null,
 
         activeAsset = null,
-        activeImage = null
+        activeImage = null,
+        activeImageLabel = null
     ;
     const tileSize = 100;
         // cursorTileSize = 50;
@@ -30,13 +35,25 @@ export default function sketch(p) {
         }
     };
 
+    const imgCache = {};
+    function loadImage(name) {
+        return new Promise((res, rej) => {
+            if (imgCache[name]) return res(imgCache[name]);
+
+            p.loadImage(`/images/objects/${name}.jpg`, img => {
+                imgCache[name] = img;
+                res(img);
+            });
+        });
+    }
+
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
         console.log('myCustomRedrawAccordingToNewPropsHandler', props);
 
         if (props.activeAsset) {
-            p.loadImage(`/images/objects/${props.activeAsset.img}.jpg`, img => {
-                activeImage = img;
-            });
+            loadImage(props.activeAsset.img)
+                .then(img => {activeImage = img; activeImageLabel = props.activeAsset.img})
+                .catch(console.error);
         }
     };
 
@@ -45,9 +62,19 @@ export default function sketch(p) {
             return;
         }
 
-        // analyzeCursor();
-        // analyzeKeyboard();
+        analyzeMouse();
+        analyzeKeyboard();
         p.background(150);
+
+        if (ghostFigure) {
+            loadImage(ghostFigure.img)
+                .then(img => {
+                    p.push();
+                        p.tint(255, 128);
+                        p.image(img, adj(ghostFigure.x) + pixelOffsetX, adj(ghostFigure.y) + pixelOffsetY, tileSize * zoomLevel, tileSize * zoomLevel);
+                    p.pop();
+                });
+        }
 
         renderBoard();
         // for (let i = 0; i < 10; i++) {
@@ -57,64 +84,63 @@ export default function sketch(p) {
         //     p.line(0, y, p.width, y);
         // }
 
-        let cursorTileSize = tileSize * zoomLevel;
+        let cursorTileSize = tileSize * zoomLevel / 2;
+        const imageOffset = 15;
 
-        if (activeImage) {
-            p.image(activeImage, p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
+        if (dragMode === "draw") {
+            /*if (activeImage) {
+                p.image(activeImage, p.mouseX + imageOffset, p.mouseY + imageOffset, cursorTileSize, cursorTileSize);
+            }
+            else {
+                p.fill(255);
+                p.rect(p.mouseX + imageOffset, p.mouseY + imageOffset, cursorTileSize, cursorTileSize);
+            }*/
         }
-        else {
-            p.fill(255);
-            p.rect(p.mouseX + 10, p.mouseY + 10, cursorTileSize, cursorTileSize);
+
+        if (dragging) {
+            analyzeDrag();
         }
     };
 
-    // function analyzeKeyboard() {
-    //     // Space
-    //     if (p.keyIsDown(32)) {
-    //         p.cursor
-    //     }
-    // }
+    function analyzeKeyboard() {
+        // Space
+        if (p.keyIsDown(32)) {
+            dragMode = "move";
+            if (!movingCanvas) p.cursor('grab');
+        }
+        else if (p.keyIsDown(p.SHIFT)) {
+            dragMode = "erase";
+            p.cursor('crosshair');
+        }
+        else {
+            dragMode = "draw";
+            p.cursor('default');
+        }
+    }
 
-    function analyzeCursor() {
+    function analyzeMouse() {
+        if (p.mouseX < 0
+            || p.mouseX >= p.width
+            || p.mouseY < 0
+            || p.mouseY >= p.height
+        ) {
+            return;
+        }
+
         const adjTileSize = (tileSize * zoomLevel);
         const adjX = (p.mouseX - pixelOffsetX);
         const adjY = (p.mouseY - pixelOffsetY);
 
-        if (adjX < 0 || adjY < 0) {
-            return;
-        }
-
         const currRow = p.floor(adjX / adjTileSize);
         const currCol = p.floor(adjY / adjTileSize);
 
-        if (currRow >= mapArray.length || currCol >= mapArray[currRow].length) {
-            return;
-        }
-
-        // console.log({
-        //     tileSize,
-        //     zoomLevel,
-        //     mouseX: p.mouseX,
-        //     mouseY: p.mouseY,
-        //     pixelOffsetX,
-        //     pixelOffsetY,
-        //     adjX,
-        //     adjY,
-        //     currRow,
-        //     currCol
-        // });
-
-        if (p.abs(adjX - adjTileSize * mapArray[currRow].length) < 10) {
-            p.cursor('col-resize');
-            dragMode = "resize";
-        }
-        else if (p.abs(adjY - adjTileSize * mapArray.length) < 10) {
-            p.cursor('row-resize');
-            dragMode = "resize";
+        // console.log(p.mouseX, p.mouseY, currRow, currCol);
+        
+        if (dragMode === "draw") {
+            ghostFigure = {x: currRow, y: currCol, img: activeImageLabel};
         }
         else {
-            p.cursor('default');
-            dragMode = "move";
+            ghostFigure = null;
         }
     }
 
@@ -145,6 +171,14 @@ export default function sketch(p) {
                 let y = adj(i) + pixelOffsetY;
                 //p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
 
+                if (tile) {
+                    loadImage(tile.img)
+                        .then(img => {
+                            p.image(img, x, y, tileSize * zoomLevel, tileSize * zoomLevel)
+                        })
+                        .catch(console.error);
+                }
+
                 if (j === 0) {
                     p.fill(0);
                     p.line(pixelOffsetX, y, pixelOffsetX + adj(30), y);
@@ -164,9 +198,9 @@ export default function sketch(p) {
 
     p.mouseWheel = function (event) {
         if (p.mouseX < 0
-            || p.mouseX > p.width
+            || p.mouseX >= p.width
             || p.mouseY < 0
-            || p.mouseY > p.height
+            || p.mouseY >= p.height
         ) {
             return;
         }
@@ -194,18 +228,57 @@ export default function sketch(p) {
         pixelOffsetY += adjY - postZoomY;
     };
 
-    p.mouseDragged = function (event) {
+    // Используем свои переменные нарочно 
+    // (я не использую p.pmouseX и p.pmouseY т.к. они обновляются всегда, а не когда мне нужно)
+    let dragPrevX = -1, dragPrevY = -1; 
+    function analyzeDrag() {
+        if (dragPrevX === p.mouseX && dragPrevY === p.mouseY) {
+            return;
+        }
+
         if (p.mouseX < 0
-            || p.mouseX > p.width
+            || p.mouseX >= p.width
             || p.mouseY < 0
-            || p.mouseY > p.height
+            || p.mouseY >= p.height
         ) {
             return;
         }
 
-        if (dragMode === "move") {
-            pixelOffsetX += p.mouseX - p.pmouseX;
-            pixelOffsetY += p.mouseY - p.pmouseY;
+        const adjTileSize = (tileSize * zoomLevel);
+        const adjX = (p.mouseX - pixelOffsetX);
+        const adjY = (p.mouseY - pixelOffsetY);
+
+        const currRow = p.floor(adjX / adjTileSize);
+        const currCol = p.floor(adjY / adjTileSize);
+
+        try {
+            if (dragMode === "move") {
+                p.cursor('grabbing');
+                movingCanvas = true;
+                pixelOffsetX += p.mouseX - p.pmouseX;
+                pixelOffsetY += p.mouseY - p.pmouseY;
+            } else if (dragMode === "draw") {
+                if (activeImageLabel) mapArray[currCol][currRow] = {img: activeImageLabel};
+
+            } else if (dragMode === "erase") {
+                mapArray[currCol][currRow] = null;
+
+            }
+        } catch (err) {
+            console.error(err);
+            console.log({currRow, currCol});
         }
+
+        dragPrevX = p.mouseX;
+        dragPrevY = p.mouseY;
+    };
+
+    p.mousePressed = function (event) {
+        dragging = true;
+    };
+
+    p.mouseReleased = function (event) {
+        movingCanvas = false;
+        dragging = false;
     };
 }
