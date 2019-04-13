@@ -17,7 +17,7 @@ class App extends Component {
         this.onSelectAssetGroup = this.onSelectAssetGroup.bind(this);
 
         this.state = {
-            inMainMenu: false,
+            inMainMenu: true,
             mainMenuState: null,
             width:  30,
             height: 30,
