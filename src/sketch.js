@@ -15,7 +15,8 @@ export default function sketch(p) {
         const parentEl = document.getElementById('mapEditor');
         p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
 
-        pixelOffsetX = p.width / 2;
+        pixelOffsetX = tileSize;
+        pixelOffsetY = tileSize;
 
         loopAllowed = true;
 
