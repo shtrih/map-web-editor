@@ -25,13 +25,15 @@ export default class InstrumentTabs extends React.Component {
                     <div id="assets" className="col s12">
                     <AssetObjects
                         objectsList={this.props.activeAssetGroup}
-                        clickHandler={() => false}
+                        clickHandler={this.props.onSelectAsset}
                     />
                 </div>
             </React.Fragment>
         );
     }
 }
+
 InstrumentTabs.propTypes = {
-    activeAssetGroup: PropTypes.string
+    activeAssetGroup: PropTypes.string,
+    onSelectAsset: PropTypes.func
 };
