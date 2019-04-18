@@ -4,7 +4,9 @@ import P5Wrapper from 'react-p5-wrapper';
 import sketch from './sketch.js';
 
 import AssetGroups from './components/AssetGroups';
-import InstrumentTabs from './components/InstrumentTabs';
+import AssetObjects from './components/AssetObjects';
+import Tools from './components/Tools';
+import Layers from './components/Layers';
 
 import 'materialize-css/dist/css/materialize.min.css'
 
@@ -73,15 +75,26 @@ class App extends Component {
                     />
                 </div>
 
-                <div id="modelPreview">
-                    <h3 className="center-align">3D model preview</h3>
-                </div>
-                <div id="instrumentTabs" className="row">
-                    <InstrumentTabs activeAssetGroup={this.state.activeAssetGroup} />
-                </div>
-                <div id="assetGroups" className="row">
-                    <div className="col s12">
-                        <AssetGroups clickHandler={this.onSelectAssetGroup} />
+                <div className="side-panel">
+                    <div id="modelPreview">
+                        <h3 className="center-align">3D model preview</h3>
+                    </div>
+                    <div id="instrumentTabs">
+                        <Tools />
+                        <Layers />
+                    </div>
+                    <div id="assetGroups" className="row">
+                        <div className="col s6">
+                            <h6>Группы обьектов</h6>
+                            <AssetGroups clickHandler={this.onSelectAssetGroup} />
+                        </div>
+                        <div id="assets" className="col s6">
+                            <h6>Обьекты</h6>
+                            <AssetObjects
+                                objectsList={this.state.activeAssetGroup}
+                                clickHandler={() => false}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
