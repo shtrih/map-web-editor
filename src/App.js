@@ -91,8 +91,7 @@ class App extends Component {
                         onSelectAsset={this.onSelectAsset}
                     />
                 </div>
-                <div id="assetGroups" className="row">
-                    {/* <div className="col s12 noPadding"> */}
+                <div id="assetGroups" className="row"> 
                     <div>
                         <AssetGroups clickHandler={this.onSelectAssetGroup} />
                     </div>

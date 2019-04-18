@@ -14,7 +14,9 @@ export default function sketch(p) {
 
         activeAsset = null,
         activeImage = null,
-        activeImageLabel = null
+        activeImageLabel = null,
+        tileSizeZoomed = null,
+        textOffset = null
     ;
     const tileSize = 100;
         // cursorTileSize = 50;
@@ -28,6 +30,9 @@ export default function sketch(p) {
         pixelOffsetY = 100;
         zoomLevel = 0.5;
 
+        tileSizeZoomed = tileSize * zoomLevel;
+        textOffset = tileSizeZoomed / 2;
+
         loopAllowed = true;
 
         for (let i = 0; i < mapHeight; i++) {
@@ -38,7 +43,9 @@ export default function sketch(p) {
     const imgCache = {};
     function loadImage(name) {
         return new Promise((res, rej) => {
-            if (imgCache[name]) return res(imgCache[name]);
+            if (imgCache[name]) {
+                return res(imgCache[name]);
+            }
 
             p.loadImage(`/images/objects/${name}.jpg`, img => {
                 imgCache[name] = img;
@@ -47,17 +54,30 @@ export default function sketch(p) {
         });
     }
 
+    // function loadImage(name) {
+    //     if (imgCache[name]) {
+    //         return imgCache[name];
+    //     }
+    // }
+
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
         console.log('myCustomRedrawAccordingToNewPropsHandler', props);
 
         if (props.activeAsset) {
             loadImage(props.activeAsset.img)
-                .then(img => {activeImage = img; activeImageLabel = props.activeAsset.img})
+                .then(img => {
+                    activeImage = img; 
+                    activeImageLabel = props.activeAsset.img;
+                })
                 .catch(console.error);
         }
     };
 
     p.draw = function () {
+        if (p.frameCount % 200 === 0) {
+            console.log(p.frameRate());
+        }
+
         if (!loopAllowed) {
             return;
         }
@@ -66,17 +86,17 @@ export default function sketch(p) {
         analyzeKeyboard();
         p.background(150);
 
+        renderBoard();
+
         if (ghostFigure) {
             loadImage(ghostFigure.img)
                 .then(img => {
                     p.push();
-                        p.tint(255, 128);
-                        p.image(img, adj(ghostFigure.x) + pixelOffsetX, adj(ghostFigure.y) + pixelOffsetY, tileSize * zoomLevel, tileSize * zoomLevel);
+                        p.tint(0, 255, 0, 128);
+                        p.image(img, adj(ghostFigure.x) + pixelOffsetX, adj(ghostFigure.y) + pixelOffsetY, tileSizeZoomed, tileSizeZoomed);
                     p.pop();
                 });
         }
-
-        renderBoard();
         // for (let i = 0; i < 10; i++) {
         //     let x = i * (tileSize * zoomLevel) + pixelOffsetX;
         //     p.line(x, 0, x, p.height);
@@ -136,8 +156,12 @@ export default function sketch(p) {
 
         // console.log(p.mouseX, p.mouseY, currRow, currCol);
         
-        if (dragMode === "draw") {
-            ghostFigure = {x: currRow, y: currCol, img: activeImageLabel};
+        if (dragMode === "draw" && activeImageLabel) {
+            ghostFigure = {
+                x: currRow, 
+                y: currCol,
+                img: activeImageLabel,
+            };
         }
         else {
             ghostFigure = null;
@@ -149,11 +173,6 @@ export default function sketch(p) {
     }
 
     function renderBoard() {
-        const tileSizeZoomed = tileSize * zoomLevel,
-            textOffset = tileSizeZoomed / 2
-        ;
-        
-
         p.textSize(tileSize / 2 * zoomLevel);
 
         // TODO: Базироваться на текущих размерах карты
@@ -178,7 +197,7 @@ export default function sketch(p) {
                 if (tile) {
                     loadImage(tile.img)
                         .then(img => {
-                            p.image(img, x, y, tileSize * zoomLevel, tileSize * zoomLevel)
+                            p.image(img, x, y, tileSizeZoomed, tileSizeZoomed)
                         })
                         .catch(console.error);
                 }
@@ -210,8 +229,8 @@ export default function sketch(p) {
             return;
         }
 
-        const adjX = (p.mouseX - pixelOffsetX),
-            adjY = (p.mouseY - pixelOffsetY),
+        const adjX = p.mouseX - pixelOffsetX,
+            adjY = p.mouseY - pixelOffsetY,
             zoomCoefficient = 1.1
         ;
 
@@ -231,6 +250,9 @@ export default function sketch(p) {
 
         pixelOffsetX += adjX - postZoomX;
         pixelOffsetY += adjY - postZoomY;
+
+        tileSizeZoomed = tileSize * zoomLevel;
+        textOffset = tileSizeZoomed / 2;
     };
 
     // Используем свои переменные нарочно 
@@ -250,28 +272,33 @@ export default function sketch(p) {
         }
 
         const adjTileSize = (tileSize * zoomLevel);
-        const adjX = (p.mouseX - pixelOffsetX);
-        const adjY = (p.mouseY - pixelOffsetY);
+        const adjX = p.mouseX - pixelOffsetX;
+        const adjY = p.mouseY - pixelOffsetY;
 
         const currRow = p.floor(adjX / adjTileSize);
         const currCol = p.floor(adjY / adjTileSize);
 
-        try {
-            if (dragMode === "move") {
-                p.cursor('grabbing');
-                movingCanvas = true;
-                pixelOffsetX += p.mouseX - p.pmouseX;
-                pixelOffsetY += p.mouseY - p.pmouseY;
-            } else if (dragMode === "draw") {
-                if (activeImageLabel) mapArray[currCol][currRow] = {img: activeImageLabel};
+        if (dragMode !== "move" 
+            && (currRow < 0 
+            || currCol < 0 
+            || currCol >= mapArray.length 
+            || currRow >= mapArray[0].length)
+        ) {
+            return;
+        }
 
-            } else if (dragMode === "erase") {
-                mapArray[currCol][currRow] = null;
-
+        if (dragMode === "move") {
+            p.cursor('grabbing');
+            movingCanvas = true;
+            pixelOffsetX += p.mouseX - p.pmouseX;
+            pixelOffsetY += p.mouseY - p.pmouseY;
+        } else if (dragMode === "draw") {
+            if (activeImageLabel) {
+                mapArray[currCol][currRow] = {img: activeImageLabel};
             }
-        } catch (err) {
-            console.error(err);
-            console.log({currRow, currCol});
+
+        } else if (dragMode === "erase") {
+            mapArray[currCol][currRow] = null;
         }
 
         dragPrevX = p.mouseX;
