@@ -92,14 +92,10 @@ class App extends Component {
                     />
                 </div>
                 <div id="assetGroups" className="row">
-                    <div className="col s12 noPadding">
+                    {/* <div className="col s12 noPadding"> */}
+                    <div>
                         <AssetGroups clickHandler={this.onSelectAssetGroup} />
                     </div>
-                    {/* <p className="center-align">Это создаст базовое поле 30x30, которое возможно расширить на кратное 
-                    30-ти клеток вправо и кратное 30-ти клеток вниз. Оставьте пустым для 30x30 поля</p>
-                    <div className="row">
-                        <a href="#!" className="center-align waves-effect waves-light btn" onClick={() => props.elt.startNew(props.elt)}>Создать</a>
-                    </div> */}
                 </div>
             </div>
         );

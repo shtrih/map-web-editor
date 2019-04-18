@@ -158,17 +158,21 @@ export default function sketch(p) {
 
         // TODO: Базироваться на текущих размерах карты
         p.fill(255);
-        p.rect(pixelOffsetX, pixelOffsetY, 
+        p.rect(
+            pixelOffsetX, 
+            pixelOffsetY, 
             adj(30),
-            adj(30));
+            adj(30),
+        );
 
         // Проанализировать и нарисовать сверху поля необходимые тайлы
-        for (let i = 0; i < mapArray.length; i++)
+        for (let i = 0; i < mapArray.length; i++) {
+            let y = adj(i) + pixelOffsetY;
+
             for (let j = 0; j < mapArray[i].length; j++) {
                 let tile = mapArray[i][j];
 
                 let x = adj(j) + pixelOffsetX;
-                let y = adj(i) + pixelOffsetY;
                 //p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
 
                 if (tile) {
@@ -181,16 +185,17 @@ export default function sketch(p) {
 
                 if (j === 0) {
                     p.fill(0);
-                    p.line(pixelOffsetX, y, pixelOffsetX + adj(30), y);
+                    p.line(pixelOffsetX, y, pixelOffsetX + adj(mapArray[i].length), y);
                     p.text(i + 1, x - textOffset, y + textOffset);
                 }
                 if (i === 0) {
                     p.fill(0);
-                    p.line(x, pixelOffsetY, x, pixelOffsetY + adj(30));
+                    p.line(x, pixelOffsetY, x, pixelOffsetY + adj(mapArray.length));
                     p.text(j + 1, x + textOffset, y - textOffset);
                 }
             }
         }
+    }
 
     // p.windowResized = function () {
     //     p.resizeCanvas(p.windowWidth * (8 / 12), p.windowHeight);
