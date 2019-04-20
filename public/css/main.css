@@ -55,6 +55,8 @@ body {
 
     top: 40%;
     right: 25%;
+
+    border-right: 1px solid #e0e0e0;
 }
 
 #assetGroups {

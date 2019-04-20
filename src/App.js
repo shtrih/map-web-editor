@@ -17,11 +17,13 @@ class App extends Component {
         super(props);
 
         this.onSelectAssetGroup = this.onSelectAssetGroup.bind(this);
+        this.onSelectAsset = this.onSelectAsset.bind(this);
 
         this.state = {
             inMainMenu: true,
             mainMenuState: null,
-            activeAssetGroup: null
+            activeAssetGroup: null,
+            activeAsset: null
         };
     }
 
@@ -34,6 +36,12 @@ class App extends Component {
     onSelectAssetGroup(event) {
         this.setState({
             activeAssetGroup: event.target.dataset.objects
+        });
+    }
+
+    onSelectAsset(event, item) {
+        this.setState({
+            activeAsset: item
         });
     }
 
@@ -72,6 +80,7 @@ class App extends Component {
                     <P5Wrapper
                         sketch={sketch}
                         style={{position: 'absolute', 'left': 0, 'top': 0, width: '100%', height: '100%'}}
+                        activeAsset={this.state.activeAsset}
                     />
                 </div>
 
@@ -92,7 +101,7 @@ class App extends Component {
                             <h6>Обьекты</h6>
                             <AssetObjects
                                 objectsList={this.state.activeAssetGroup}
-                                clickHandler={() => false}
+                                clickHandler={this.onSelectAsset}
                             />
                         </div>
                     </div>
