@@ -85,5 +85,6 @@ export default class AssetObjects extends React.Component {
 }
 
 AssetObjects.propTypes = {
-    clickHandler: PropTypes.func
+    clickHandler: PropTypes.func,
+    objectsList: PropTypes.string
 };
