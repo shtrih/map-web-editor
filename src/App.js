@@ -75,29 +75,28 @@ class App extends Component {
         }
 
         return (
-            <div id="workscreen" className="row">
-                <div id="mapEditor" className="noPadding">
+            <div id="workscreen">
+                <div id="mapEditor">
                     <P5Wrapper
                         sketch={sketch}
-                        style={{position: 'absolute', 'left': 0, 'top': 0, width: '100%', height: '100%'}}
                         activeAsset={this.state.activeAsset}
                     />
                 </div>
 
-                <div className="side-panel">
-                    <div id="modelPreview">
+                <div id="sidePanel">
+                    <div className="model-preview">
                         <h3 className="center-align">3D model preview</h3>
                     </div>
-                    <div id="instrumentTabs">
+                    <div className="instruments">
                         <Tools />
                         <Layers />
                     </div>
-                    <div id="assetGroups" className="row">
+                    <div className="asset-lists row">
                         <div className="col s6">
                             <h6>Группы обьектов</h6>
                             <AssetGroups clickHandler={this.onSelectAssetGroup} />
                         </div>
-                        <div id="assets" className="col s6">
+                        <div className="col s6">
                             <h6>Обьекты</h6>
                             <AssetObjects
                                 objectsList={this.state.activeAssetGroup}

@@ -20,11 +20,3 @@ code {
         monospace;
 }
 
-.side-panel h6 {
-    font-size: 1rem;
-    margin: 10px 6px;
-}
-
-.side-panel .collection {
-    border-width: 0;
-}
