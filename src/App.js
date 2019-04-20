@@ -51,12 +51,12 @@ class App extends Component {
                 <div className="screen" id="startScreen">
 
                     <div className="container">
-                        <h3 className="center z-depth-3" style={{padding: "1.2rem", backgroundColor: "rgba(255, 255, 255, 0.815)"}}>Добро
-                            пожаловать в редактор тайлов для SCP Community!</h3>
-
                         <div className="row">
+                            <div className="col s12">
+                                <h1 className="header center z-depth-3">Добро пожаловать в редактор тайлов для SCP Community!</h1>
+                            </div>
                             <div className="col s6 offset-s3">
-                                <div className="card blue-grey darken-1" id="mainMenuCard">
+                                <div className="card blue-grey darken-1">
                                     <div className="card-content white-text">
                                         <span className="card-title center">Настройки</span>
                                         <p className="center">Создайте новый объект или загрузите существующий файл</p>
