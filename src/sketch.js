@@ -453,13 +453,30 @@ export default function sketch(p) {
         const adjX = p.mouseX - pixelOffsetX;
         const adjY = p.mouseY - pixelOffsetY;
 
-        const currRow = p.floor(adjX / adjTileSize);
-        const currCol = p.floor(adjY / adjTileSize);
+        let currRow = p.floor(adjX / adjTileSize);
+        let currCol = p.floor(adjY / adjTileSize);
 
         const mapBlockX = p.floor(currRow / mapWidth);
-        const mapBlockY = p.floor(currCol / mapHeight); 
+        const mapBlockY = p.floor(currCol / mapHeight);
+        
+        console.log('pre', {currRow, currCol});
 
-        // console.log({mapList, MapBlock});
+        // Нормализировать currRow и currRow
+        if (currRow < 0) {
+            currRow = mapWidth - p.abs(currRow) % mapWidth;
+        }
+        else {
+            currRow = p.abs(currRow) % mapWidth;
+        }
+
+        if (currCol < 0) {
+            currCol = mapHeight - p.abs(currCol) % mapHeight;
+        }
+        else {
+            currCol = p.abs(currCol) % mapHeight;
+        }
+
+        console.log('post', {currRow, currCol});
 
         if (dragMode !== "move" 
             && (currRow < 0 
