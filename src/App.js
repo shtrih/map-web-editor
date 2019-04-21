@@ -4,7 +4,9 @@ import P5Wrapper from 'react-p5-wrapper';
 import sketch from './sketch.js';
 
 import AssetGroups from './components/AssetGroups';
-import InstrumentTabs from './components/InstrumentTabs';
+import AssetObjects from './components/AssetObjects';
+import Tools from './components/Tools';
+import Layers from './components/Layers';
 
 import 'materialize-css/dist/css/materialize.min.css'
 
@@ -49,12 +51,12 @@ class App extends Component {
                 <div className="screen" id="startScreen">
 
                     <div className="container">
-                        <h3 className="center z-depth-3" style={{padding: "1.2rem", backgroundColor: "rgba(255, 255, 255, 0.815)"}}>Добро
-                            пожаловать в редактор тайлов для SCP Community!</h3>
-
                         <div className="row">
+                            <div className="col s12">
+                                <h1 className="header center z-depth-3">Добро пожаловать в редактор тайлов для SCP Community!</h1>
+                            </div>
                             <div className="col s6 offset-s3">
-                                <div className="card blue-grey darken-1" id="mainMenuCard">
+                                <div className="card blue-grey darken-1">
                                     <div className="card-content white-text">
                                         <span className="card-title center">Настройки</span>
                                         <p className="center">Создайте новый объект или загрузите существующий файл</p>
@@ -73,27 +75,34 @@ class App extends Component {
         }
 
         return (
-            <div id="workscreen" className="row">
-                <div id="mapEditor" className="noPadding">
+            <div id="workscreen">
+                <div id="mapEditor">
                     <P5Wrapper
                         sketch={sketch}
-                        style={{position: 'absolute', 'left': 0, 'top': 0, width: '100%', height: '100%'}}
                         activeAsset={this.state.activeAsset}
                     />
                 </div>
 
-                <div id="modelPreview">
-                    <h3 className="center-align">3D model preview</h3>
-                </div>
-                <div id="instrumentTabs" className="row">
-                    <InstrumentTabs
-                        activeAssetGroup={this.state.activeAssetGroup}
-                        onSelectAsset={this.onSelectAsset}
-                    />
-                </div>
-                <div id="assetGroups" className="row"> 
-                    <div>
-                        <AssetGroups clickHandler={this.onSelectAssetGroup} />
+                <div id="sidePanel">
+                    <div className="model-preview">
+                        <h3 className="center-align">3D model preview</h3>
+                    </div>
+                    <div className="instruments">
+                        <Tools />
+                        <Layers />
+                    </div>
+                    <div className="asset-lists row">
+                        <div className="col s6">
+                            <h6>Группы обьектов</h6>
+                            <AssetGroups clickHandler={this.onSelectAssetGroup} />
+                        </div>
+                        <div className="col s6">
+                            <h6>Обьекты</h6>
+                            <AssetObjects
+                                objectsList={this.state.activeAssetGroup}
+                                clickHandler={this.onSelectAsset}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

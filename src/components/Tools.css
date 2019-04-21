@@ -1,0 +1,31 @@
+.tools {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.tools a {
+    display: inline-block;
+    border-radius: 2px;
+    line-height: 0;
+    text-align: center;
+    margin: 2px;
+    padding: 4px;
+    vertical-align: middle;
+
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #aaa;
+}
+
+.tools a:hover {
+    color: #555;
+    border-color: #778;
+    background-color: #eef;
+}
+
+.tools a:active {
+    background-color: #dde;
+    box-shadow: inset 1px 1px 0 0 #889;
+}
