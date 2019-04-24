@@ -1,0 +1,6 @@
+export const TILE_SIZE = 100,
+    MAP_WIDTH = 30,
+    MAP_HEIGHT = 30,
+    MIN_GRID_RENDER_ZOOM = 0.25,
+    GRID_OPACITY_ZOOM = 0.35
+;
