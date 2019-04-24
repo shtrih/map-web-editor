@@ -1,13 +1,13 @@
-import MapList from "./modules/MapList";
+import MapList from "../modules/MapList";
 import {
     TILE_SIZE,
     MAP_WIDTH,
     MAP_HEIGHT,
     MIN_GRID_RENDER_ZOOM,
     GRID_OPACITY_ZOOM
-} from './modules/Constants';
+} from '../modules/Constants';
 
-import loadImageMemo from './modules/loadImageWithMemo';
+import loadImageMemo from '../modules/loadImageWithMemo';
 
 export default function sketch(p) {
     let loopAllowed = false,
@@ -35,14 +35,16 @@ export default function sketch(p) {
         p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
 
         // TODO: Replace this with code that centers the field
-        pixelOffsetX = 100;
-        pixelOffsetY = 100;
+        pixelOffsetX = TILE_SIZE;
+        pixelOffsetY = TILE_SIZE;
         zoomLevel = 0.5;
 
         tileSizeZoomed = TILE_SIZE * zoomLevel;
         textOffset = tileSizeZoomed / 2;
 
         loopAllowed = true;
+        adjWidth = adj(MAP_WIDTH);
+        adjHeight = adj(MAP_HEIGHT);
 
         mapList.createBlock(0, 0);
     };
@@ -57,10 +59,6 @@ export default function sketch(p) {
     };
 
     p.draw = function () {
-        if (p.frameCount % 200 === 0) {
-            console.log("fps:", p.frameRate(), "mapList:", mapList);
-        }
-
         if (!loopAllowed) {
             return;
         }
