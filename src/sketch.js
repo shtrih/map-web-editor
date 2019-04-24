@@ -298,7 +298,6 @@ export default function sketch(p) {
         dragging = false;
     };
 
-
     function drawBlock(block) {
         const tiles = block.tiles;
         // console.log({x, y, tiles});
@@ -361,6 +360,7 @@ export default function sketch(p) {
             }
         }
     }
+
     function drawBlockButtons(block) {
         for (let label in block.connections) {
             if (block.connections[label]) {

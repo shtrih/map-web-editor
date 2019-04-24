@@ -1,4 +1,5 @@
 import MapBlock from "./MapBlock";
+
 export default class MapList {
     constructor() {
         this.blocks = {};
@@ -7,6 +8,7 @@ export default class MapList {
     get(x, y) {
         return this.blocks[`${x}:${y}`];
     }
+
     set(x, y, val) {
         this.blocks[`${x}:${y}`] = val;
 
@@ -28,9 +30,11 @@ export default class MapList {
         this.set(x, y, new MapBlock(x, y));
         this.updateConnections(x, y);
     }
+
     blockExists(x, y) {
         return (this.blocks[`${x}:${y}`] !== undefined);
     }
+
     loopThrough(f) {
         for (let blockName in this.blocks) {
             f(this.blocks[blockName]);

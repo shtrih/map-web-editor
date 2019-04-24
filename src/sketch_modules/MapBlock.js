@@ -1,4 +1,5 @@
 import { MAP_HEIGHT, MAP_WIDTH } from './Constants'
+
 export default class MapBlock {
     constructor(x, y) {
         this.x = x;
