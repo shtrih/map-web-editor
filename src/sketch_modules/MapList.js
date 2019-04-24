@@ -3,7 +3,7 @@ export default class MapList {
     constructor() {
         this.blocks = {};
     }
-    
+
     get(x, y) {
         return this.blocks[`${x}:${y}`];
     }
@@ -11,16 +11,16 @@ export default class MapList {
         this.blocks[`${x}:${y}`] = val;
 
         if (this.blockExists(x, y + 1)) {
-            this.get(x, y + 1).updateConnections();
+            this.updateConnections(x, y + 1);
         }
         if (this.blockExists(x, y - 1)) {
-            this.get(x, y - 1).updateConnections();
+            this.updateConnections(x, y - 1);
         }
         if (this.blockExists(x + 1, y)) {
-            this.get(x + 1, y).updateConnections();
+            this.updateConnections(x + 1, y);
         }
         if (this.blockExists(x - 1, y)) {
-            this.get(x - 1, y).updateConnections();
+            this.updateConnections(x - 1, y);
         }
     }
 
@@ -40,7 +40,7 @@ export default class MapList {
     updateConnections(x, y) {
         const b = this.get(x, y);
         if (b) {
-            this.connections = {
+            b.connections = {
                 left:  this.blockExists(x - 1, y),
                 right: this.blockExists(x + 1, y),
                 up:    this.blockExists(x, y - 1),

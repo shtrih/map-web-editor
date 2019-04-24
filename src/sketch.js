@@ -1,5 +1,11 @@
 import MapList from "./sketch_modules/MapList";
-import * as gv from "./sketch_modules/GlobalVars.json";
+import {
+    TILE_SIZE,
+    MAP_WIDTH,
+    MAP_HEIGHT,
+    MIN_GRID_RENDER_ZOOM,
+    GRID_OPACITY_ZOOM
+} from './sketch_modules/Constants';
 
 export default function sketch(p) {
     let loopAllowed = false,
@@ -12,7 +18,7 @@ export default function sketch(p) {
         movingCanvas = false,
         dragging = false,
         showExpandButtons = true,
-        
+
         ghostFigure = null,
 
         activeAsset = null,
@@ -23,7 +29,6 @@ export default function sketch(p) {
         adjWidth = null,
         adjHeight = null
     ;
-
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
         p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
@@ -33,11 +38,11 @@ export default function sketch(p) {
         pixelOffsetY = 100;
         zoomLevel = 0.5;
 
-        tileSizeZoomed = gv.tileSize * zoomLevel;
+        tileSizeZoomed = TILE_SIZE * zoomLevel;
         textOffset = tileSizeZoomed / 2;
 
         loopAllowed = true;
-        
+
         mapList.createBlock(0, 0);
     };
 
@@ -53,7 +58,7 @@ export default function sketch(p) {
                 res(img);
             });
         });
-    } 
+    }
 
     // function loadImage(name) {
     //     if (imgCache[name]) {
@@ -67,7 +72,7 @@ export default function sketch(p) {
         if (props.activeAsset) {
             loadImage(props.activeAsset.img)
                 .then(img => {
-                    activeImage = img; 
+                    activeImage = img;
                     activeImageLabel = props.activeAsset.img;
                 })
                 .catch(console.error);
@@ -129,7 +134,7 @@ export default function sketch(p) {
             return;
         }
 
-        const adjTileSize = gv.tileSize * zoomLevel;
+        const adjTileSize = TILE_SIZE * zoomLevel;
         const adjX = p.mouseX - pixelOffsetX;
         const adjY = p.mouseY - pixelOffsetY;
 
@@ -137,10 +142,10 @@ export default function sketch(p) {
         const currCol = p.floor(adjY / adjTileSize);
 
         // console.log(p.mouseX, p.mouseY, currRow, currCol);
-        
+
         if (dragMode === "draw" && activeImageLabel) {
             ghostFigure = {
-                x: currRow, 
+                x: currRow,
                 y: currCol,
                 img: activeImageLabel,
             };
@@ -151,14 +156,14 @@ export default function sketch(p) {
     }
 
     function adj(val) {
-        return val * gv.tileSize * zoomLevel;
+        return val * TILE_SIZE * zoomLevel;
     }
 
     function renderBoard() {
-        p.textSize(gv.tileSize / 2 * zoomLevel);
-        
-        adjWidth = adj(gv.mapWidth);
-        adjHeight = adj(gv.mapHeight);
+        p.textSize(TILE_SIZE / 2 * zoomLevel);
+
+        adjWidth = adj(MAP_WIDTH);
+        adjHeight = adj(MAP_HEIGHT);
 
         mapList.loopThrough(block => {
             drawBlock(block);
@@ -205,15 +210,15 @@ export default function sketch(p) {
         pixelOffsetX += adjX - postZoomX;
         pixelOffsetY += adjY - postZoomY;
 
-        tileSizeZoomed = gv.tileSize * zoomLevel;
+        tileSizeZoomed = TILE_SIZE * zoomLevel;
         textOffset = tileSizeZoomed / 2;
 
         console.log("zoomLevel:", zoomLevel);
     };
 
-    // Используем свои переменные нарочно 
+    // Используем свои переменные нарочно
     // (я не использую p.pmouseX и p.pmouseY т.к. они обновляются всегда, а не когда мне нужно)
-    let dragPrevX = -1, dragPrevY = -1; 
+    let dragPrevX = -1, dragPrevY = -1;
     function analyzeDrag() {
         if (dragPrevX === p.mouseX && dragPrevY === p.mouseY) {
             return;
@@ -227,37 +232,37 @@ export default function sketch(p) {
             return;
         }
 
-        const adjTileSize = gv.tileSize * zoomLevel;
+        const adjTileSize = TILE_SIZE * zoomLevel;
         const adjX = p.mouseX - pixelOffsetX;
         const adjY = p.mouseY - pixelOffsetY;
 
         let currRow = p.floor(adjX / adjTileSize);
         let currCol = p.floor(adjY / adjTileSize);
 
-        const mapBlockX = p.floor(currRow / gv.mapWidth);
-        const mapBlockY = p.floor(currCol / gv.mapHeight);
-        
+        const mapBlockX = p.floor(currRow / MAP_WIDTH);
+        const mapBlockY = p.floor(currCol / MAP_HEIGHT);
+
         console.log('pre', {currRow, currCol});
 
         // Нормализировать currRow и currRow
         if (currRow < 0) {
-            currRow = gv.mapWidth - p.abs(currRow) % gv.mapWidth;
+            currRow = MAP_WIDTH - p.abs(currRow) % MAP_WIDTH;
         }
         else {
-            currRow = p.abs(currRow) % gv.mapWidth;
+            currRow = p.abs(currRow) % MAP_WIDTH;
         }
 
         if (currCol < 0) {
-            currCol = gv.mapHeight - p.abs(currCol) % gv.mapHeight;
+            currCol = MAP_HEIGHT - p.abs(currCol) % MAP_HEIGHT;
         }
         else {
-            currCol = p.abs(currCol) % gv.mapHeight;
+            currCol = p.abs(currCol) % MAP_HEIGHT;
         }
 
         console.log('post', {currRow, currCol});
 
-        if (dragMode !== "move" 
-            && (currRow < 0 
+        if (dragMode !== "move"
+            && (currRow < 0
             || currCol < 0
             || !mapList.blockExists(mapBlockX, mapBlockY))
         ) {
@@ -293,9 +298,9 @@ export default function sketch(p) {
         dragging = false;
     };
 
-    
+
     function drawBlock(block) {
-        const tiles = block.tiles; 
+        const tiles = block.tiles;
         // console.log({x, y, tiles});
         const blockPixelOffsetX = pixelOffsetX + adjWidth * block.x;
         const blockPixelOffsetY = pixelOffsetY + adjHeight * block.y;
@@ -304,17 +309,17 @@ export default function sketch(p) {
         p.stroke(0);
         p.strokeWeight(2);
         p.rect(
-            blockPixelOffsetX, 
-            blockPixelOffsetY, 
+            blockPixelOffsetX,
+            blockPixelOffsetY,
             adjWidth,
             adjHeight,
         );
 
         // Проанализировать и нарисовать сверху поля необходимые тайлы
-        for (let i = 0; i < gv.mapHeight; i++) {
+        for (let i = 0; i < MAP_HEIGHT; i++) {
             let y = adj(i) + blockPixelOffsetY;
 
-            for (let j = 0; j < gv.mapWidth; j++) {
+            for (let j = 0; j < MAP_WIDTH; j++) {
                 let tile = tiles[i][j];
 
                 let x = adj(j) + blockPixelOffsetX;
@@ -328,14 +333,14 @@ export default function sketch(p) {
                         .catch(console.error);
                 }
 
-                if (zoomLevel >= gv.minGridRenderZoom) {
+                if (zoomLevel >= MIN_GRID_RENDER_ZOOM) {
 
                     let transparencyLevel;
-                    if (zoomLevel >= gv.gridOpacityZoom) {
+                    if (zoomLevel >= GRID_OPACITY_ZOOM) {
                         transparencyLevel = 255;
                     }
                     else {
-                        transparencyLevel = p.map(gv.gridOpacityZoom - zoomLevel, 0, gv.gridOpacityZoom - gv.minGridRenderZoom, 255, 0);
+                        transparencyLevel = p.map(GRID_OPACITY_ZOOM - zoomLevel, 0, GRID_OPACITY_ZOOM - MIN_GRID_RENDER_ZOOM, 255, 0);
                     }
 
                     if (j === 0) {
@@ -343,18 +348,18 @@ export default function sketch(p) {
                         p.strokeWeight(1);
 
                         p.line(blockPixelOffsetX, y, blockPixelOffsetX + adjWidth, y);
-                        // p.text(mapHeight * block.y + i + 1, x - textOffset, y + textOffset);
+                        // p.text(MAP_HEIGHT * block.y + i + 1, x - textOffset, y + textOffset);
                     }
                     if (i === 0) {
                         p.stroke(0, transparencyLevel);
                         p.strokeWeight(1);
 
                         p.line(x, blockPixelOffsetY, x, blockPixelOffsetY + adjHeight);
-                        // p.text(mapWidth * block.x + j + 1, x + textOffset, y - textOffset);
+                        // p.text(MAP_WIDTH * block.x + j + 1, x + textOffset, y - textOffset);
                     }
                 }
             }
-        } 
+        }
     }
     function drawBlockButtons(block) {
         for (let label in block.connections) {
@@ -371,7 +376,7 @@ export default function sketch(p) {
             const blockPixelOffsetX = pixelOffsetX + adjWidth * block.x;
             const blockPixelOffsetY = pixelOffsetY + adjHeight * block.y;
 
-            let mouseXOffset, 
+            let mouseXOffset,
                 mouseYOffset
             ;
 
@@ -380,7 +385,7 @@ export default function sketch(p) {
                     p.translate(-20 + blockPixelOffsetX, adjHeight / 2 + blockPixelOffsetY);
                     mouseXOffset = -20 + blockPixelOffsetX;
                     mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
-                    
+
                     p.rotate(-p.PI / 2);
                     break;
                 case "right":
@@ -449,7 +454,7 @@ export default function sketch(p) {
     }
 }
 
-// Проверяет, если точка находится внутри треугольника (я внаглую стырил это отсюда 
+// Проверяет, если точка находится внутри треугольника (я внаглую стырил это отсюда
 // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle)
 /*function ptInTriangle(px, py, p0x, p0y, p1x, p1y, p2x, p2y) {
     let p = {x: px, y: py},
@@ -462,6 +467,6 @@ export default function sketch(p) {
     let sign = A < 0 ? -1 : 1;
     let s = (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y) * sign;
     let t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y) * sign;
-    
+
     return s > 0 && t > 0 && (s + t) < 2 * A * sign;
 }*/
