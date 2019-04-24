@@ -7,6 +7,8 @@ import {
     GRID_OPACITY_ZOOM
 } from './sketch_modules/Constants';
 
+import loadImageMemo from './modules/loadImageWithMemo';
+
 export default function sketch(p) {
     let loopAllowed = false,
         zoomLevel = 1,
@@ -21,13 +23,12 @@ export default function sketch(p) {
 
         ghostFigure = null,
 
-        activeAsset = null,
-        activeImage = null,
         activeImageLabel = null,
         tileSizeZoomed = null,
         textOffset = null,
         adjWidth = null,
-        adjHeight = null
+        adjHeight = null,
+        tileImage = null
     ;
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
@@ -46,36 +47,12 @@ export default function sketch(p) {
         mapList.createBlock(0, 0);
     };
 
-    const imgCache = {};
-    function loadImage(name) {
-        return new Promise((res, rej) => {
-            if (imgCache[name]) {
-                return res(imgCache[name]);
-            }
-
-            p.loadImage(`/images/objects/${name}.jpg`, img => {
-                imgCache[name] = img;
-                res(img);
-            });
-        });
-    }
-
-    // function loadImage(name) {
-    //     if (imgCache[name]) {
-    //         return imgCache[name];
-    //     }
-    // }
-
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
         console.log('myCustomRedrawAccordingToNewPropsHandler', props);
 
         if (props.activeAsset) {
-            loadImage(props.activeAsset.img)
-                .then(img => {
-                    activeImage = img;
-                    activeImageLabel = props.activeAsset.img;
-                })
-                .catch(console.error);
+            loadImageMemo(props.activeAsset.img, p);
+            activeImageLabel = props.activeAsset.img;
         }
     };
 
@@ -95,13 +72,15 @@ export default function sketch(p) {
         renderBoard();
 
         if (ghostFigure) {
-            loadImage(ghostFigure.img)
-                .then(img => {
-                    p.push();
-                        p.tint(0, 255, 0, 128);
-                        p.image(img, adj(ghostFigure.x) + pixelOffsetX, adj(ghostFigure.y) + pixelOffsetY, tileSizeZoomed, tileSizeZoomed);
-                    p.pop();
-                });
+            tileImage = loadImageMemo(ghostFigure.img, p);
+            if (tileImage) {
+                // region 'Image Tint'
+                p.push();
+                p.tint(0, 255, 0, 128);
+                p.image(tileImage, adj(ghostFigure.x) + pixelOffsetX, adj(ghostFigure.y) + pixelOffsetY, tileSizeZoomed, tileSizeZoomed);
+                p.pop();
+                // endregion
+            }
         }
 
         if (dragging) {
@@ -324,12 +303,10 @@ export default function sketch(p) {
                 let x = adj(j) + blockPixelOffsetX;
 
                 if (tile) {
-                    // FIXME: Избежать создание функций в цикле
-                    loadImage(tile.img)
-                        .then(img => {
-                            p.image(img, x, y, tileSizeZoomed, tileSizeZoomed)
-                        })
-                        .catch(console.error);
+                    tileImage = loadImageMemo(tile.img, p);
+                    if (tileImage) {
+                        p.image(tileImage, x, y, tileSizeZoomed, tileSizeZoomed)
+                    }
                 }
 
                 if (zoomLevel >= MIN_GRID_RENDER_ZOOM) {
