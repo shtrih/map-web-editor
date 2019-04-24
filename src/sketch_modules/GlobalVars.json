@@ -1,0 +1,7 @@
+{
+    "tileSize": 100,
+    "mapWidth": 30,
+    "mapHeight": 30,
+    "minGridRenderZoom": 0.25,
+    "gridOpacityZoom": 0.35
+}

@@ -1,38 +1,7 @@
+import MapList from "./sketch_modules/MapList";
+import * as gv from "./sketch_modules/GlobalVars.json";
+
 export default function sketch(p) {
-    class MapList {
-        constructor() {
-            this.blocks = {};
-        }
-        
-        get(x, y) {
-            return this.blocks[`${x}:${y}`];
-        }
-        set(x, y, val) {
-            this.blocks[`${x}:${y}`] = val;
-
-            if (this.blockExists(x, y + 1)) {
-                this.get(x, y + 1).updateConnections();
-            }
-            if (this.blockExists(x, y - 1)) {
-                this.get(x, y - 1).updateConnections();
-            }
-            if (this.blockExists(x + 1, y)) {
-                this.get(x + 1, y).updateConnections();
-            }
-            if (this.blockExists(x - 1, y)) {
-                this.get(x - 1, y).updateConnections();
-            }
-        }
-        blockExists(x, y) {
-            return (this.blocks[`${x}:${y}`] !== undefined);
-        }
-        loopThrough(f) {
-            for (let blockName in this.blocks) {
-                f(this.blocks[blockName]);
-            }
-        }
-    }
-
     let loopAllowed = false,
         zoomLevel = 1,
         dragMode = "move",
@@ -54,189 +23,6 @@ export default function sketch(p) {
         adjWidth = null,
         adjHeight = null
     ;
-    const tileSize = 100,
-        mapWidth = 30,
-        mapHeight = 30,
-        minGridRenderZoom = 0.25,
-        gridOpacityZoom = 0.35
-    ;
-
-    class MapBlock {
-        constructor(x, y, origin) {
-            this.x = x;
-            this.y = y;
-
-            this.updateConnections();
-
-            this.tiles = [];
-            for (let i = 0; i < mapHeight; i++) {
-                this.tiles.push(new Array(mapWidth));
-            }
-        }
-
-        updateConnections() {
-            this.connections = {
-                left:  mapList.blockExists(this.x - 1, this.y),
-                right: mapList.blockExists(this.x + 1, this.y),
-                up:    mapList.blockExists(this.x, this.y - 1),
-                down:  mapList.blockExists(this.x, this.y + 1)
-            }
-        }
-
-        draw() {
-            const tiles = this.tiles; 
-            // console.log({x, y, tiles});
-            const blockPixelOffsetX = pixelOffsetX + adjWidth * this.x;
-            const blockPixelOffsetY = pixelOffsetY + adjHeight * this.y;
-
-            p.fill(255);
-            p.stroke(0);
-            p.strokeWeight(2);
-            p.rect(
-                blockPixelOffsetX, 
-                blockPixelOffsetY, 
-                adjWidth,
-                adjHeight,
-            );
-
-            // Проанализировать и нарисовать сверху поля необходимые тайлы
-            for (let i = 0; i < mapHeight; i++) {
-                let y = adj(i) + blockPixelOffsetY;
-
-                for (let j = 0; j < mapWidth; j++) {
-                    let tile = tiles[i][j];
-
-                    let x = adj(j) + blockPixelOffsetX;
-
-                    if (tile) {
-                        // FIXME: Избежать создание функций в цикле
-                        loadImage(tile.img)
-                            .then(img => {
-                                p.image(img, x, y, tileSizeZoomed, tileSizeZoomed)
-                            })
-                            .catch(console.error);
-                    }
-
-                    if (zoomLevel >= minGridRenderZoom) {
-
-                        let transparencyLevel;
-                        if (zoomLevel >= gridOpacityZoom) {
-                            transparencyLevel = 255;
-                        }
-                        else {
-                            transparencyLevel = p.map(gridOpacityZoom - zoomLevel, 0, gridOpacityZoom - minGridRenderZoom, 255, 0);
-                        }
-
-                        if (j === 0) {
-                            p.stroke(0, transparencyLevel);
-                            p.strokeWeight(1);
-
-                            p.line(blockPixelOffsetX, y, blockPixelOffsetX + adjWidth, y);
-                            // p.text(mapHeight * this.y + i + 1, x - textOffset, y + textOffset);
-                        }
-                        if (i === 0) {
-                            p.stroke(0, transparencyLevel);
-                            p.strokeWeight(1);
-
-                            p.line(x, blockPixelOffsetY, x, blockPixelOffsetY + adjHeight);
-                            // p.text(mapWidth * this.x + j + 1, x + textOffset, y - textOffset);
-                        }
-                    }
-                }
-            } 
-        }
-        drawButtons() {
-            for (let label in this.connections) {
-                if (this.connections[label]) {
-                    continue;
-                }
-
-                p.push();
-                p.fill(200);
-                p.strokeWeight(1);
-                p.stroke(0, 20);
-                // p.translate(p.width / 2, p.height / 2);
-
-                const blockPixelOffsetX = pixelOffsetX + adjWidth * this.x;
-                const blockPixelOffsetY = pixelOffsetY + adjHeight * this.y;
-
-                let mouseXOffset, 
-                    mouseYOffset
-                ;
-
-                switch(label) {
-                    case "left":
-                        p.translate(-20 + blockPixelOffsetX, adjHeight / 2 + blockPixelOffsetY);
-                        mouseXOffset = -20 + blockPixelOffsetX;
-                        mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
-                        
-                        p.rotate(-p.PI / 2);
-                        break;
-                    case "right":
-                        p.translate(adjWidth + blockPixelOffsetX + 20, adjHeight / 2 + blockPixelOffsetY);
-                        mouseXOffset = adjWidth + blockPixelOffsetX + 20;
-                        mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
-
-                        p.rotate(p.PI / 2);
-                        break;
-                    case "up":
-                        p.translate(adjWidth / 2 + blockPixelOffsetX, -20 + blockPixelOffsetY);
-                        mouseXOffset = adjWidth / 2 + blockPixelOffsetX;
-                        mouseYOffset = -20 + blockPixelOffsetY;
-                        break;
-                    case "down":
-                        p.translate(adjWidth / 2 + blockPixelOffsetX, 20 + blockPixelOffsetY + adjHeight);
-                        mouseXOffset = adjWidth / 2 + blockPixelOffsetX;
-                        mouseYOffset = 20 + blockPixelOffsetY + adjHeight;
-
-                        p.rotate(p.PI);
-                        break;
-
-                    default:
-                        throw new Error('No such direciton label:', label);
-                }
-                p.triangle(-20, 10, 0, -10, 20, 10);
-                // FIXME:
-                // if (ptInTriangle(p.mouseX - mouseXOffset, p.mouseY - mouseYOffset, -20, 10, 0, -10, 20, 10)) {
-                // Временно для ускорения написания вместо просчитывания столкновения мыши с треугольником использую круглый хитбокс
-                // Код выше РАБОТАЕТ, но всегда предпологает, что треугольник смотрит ВВЕРХ
-                if (p.dist(p.mouseX - mouseXOffset, p.mouseY - mouseYOffset, 0, 0) <= 18) {
-                    if (dragMode === "draw") {
-                        p.cursor('pointer');
-                    }
-
-                    if (p.mouseIsPressed) {
-                        console.log('Intersection w/', label, 'on block x:', this.x, 'y:', this.y);
-                        let newBlockX = this.x,
-                            newBlockY = this.y
-                        ;
-
-                        switch(label) {
-                            case "left":
-                                newBlockX--;
-                                break;
-                            case "right":
-                                newBlockX++;
-                                break;
-                            case "up":
-                                newBlockY--;
-                                break;
-                            case "down":
-                                newBlockY++;
-                                break;
-        
-                            default:
-                                throw new Error('No such direciton label:', label);
-                        }
-
-                        mapList.set(newBlockX, newBlockY, new MapBlock(newBlockX, newBlockY, this));
-                    }
-                }
-
-                p.pop();
-            }
-        }
-    }
 
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
@@ -247,12 +33,12 @@ export default function sketch(p) {
         pixelOffsetY = 100;
         zoomLevel = 0.5;
 
-        tileSizeZoomed = tileSize * zoomLevel;
+        tileSizeZoomed = gv.tileSize * zoomLevel;
         textOffset = tileSizeZoomed / 2;
 
         loopAllowed = true;
         
-        mapList.set(0, 0, new MapBlock(0, 0));
+        mapList.createBlock(0, 0);
     };
 
     const imgCache = {};
@@ -343,9 +129,9 @@ export default function sketch(p) {
             return;
         }
 
-        const adjTileSize = (tileSize * zoomLevel);
-        const adjX = (p.mouseX - pixelOffsetX);
-        const adjY = (p.mouseY - pixelOffsetY);
+        const adjTileSize = gv.tileSize * zoomLevel;
+        const adjX = p.mouseX - pixelOffsetX;
+        const adjY = p.mouseY - pixelOffsetY;
 
         const currRow = p.floor(adjX / adjTileSize);
         const currCol = p.floor(adjY / adjTileSize);
@@ -365,20 +151,20 @@ export default function sketch(p) {
     }
 
     function adj(val) {
-        return val * tileSize * zoomLevel;
+        return val * gv.tileSize * zoomLevel;
     }
 
     function renderBoard() {
-        p.textSize(tileSize / 2 * zoomLevel);
+        p.textSize(gv.tileSize / 2 * zoomLevel);
         
-        adjWidth = adj(mapWidth);
-        adjHeight = adj(mapHeight);
+        adjWidth = adj(gv.mapWidth);
+        adjHeight = adj(gv.mapHeight);
 
         mapList.loopThrough(block => {
-            block.draw();
+            drawBlock(block);
 
             if (showExpandButtons) {
-                block.drawButtons();
+                drawBlockButtons(block);
             }
         });
 
@@ -419,7 +205,7 @@ export default function sketch(p) {
         pixelOffsetX += adjX - postZoomX;
         pixelOffsetY += adjY - postZoomY;
 
-        tileSizeZoomed = tileSize * zoomLevel;
+        tileSizeZoomed = gv.tileSize * zoomLevel;
         textOffset = tileSizeZoomed / 2;
 
         console.log("zoomLevel:", zoomLevel);
@@ -441,31 +227,31 @@ export default function sketch(p) {
             return;
         }
 
-        const adjTileSize = (tileSize * zoomLevel);
+        const adjTileSize = gv.tileSize * zoomLevel;
         const adjX = p.mouseX - pixelOffsetX;
         const adjY = p.mouseY - pixelOffsetY;
 
         let currRow = p.floor(adjX / adjTileSize);
         let currCol = p.floor(adjY / adjTileSize);
 
-        const mapBlockX = p.floor(currRow / mapWidth);
-        const mapBlockY = p.floor(currCol / mapHeight);
+        const mapBlockX = p.floor(currRow / gv.mapWidth);
+        const mapBlockY = p.floor(currCol / gv.mapHeight);
         
         console.log('pre', {currRow, currCol});
 
         // Нормализировать currRow и currRow
         if (currRow < 0) {
-            currRow = mapWidth - p.abs(currRow) % mapWidth;
+            currRow = gv.mapWidth - p.abs(currRow) % gv.mapWidth;
         }
         else {
-            currRow = p.abs(currRow) % mapWidth;
+            currRow = p.abs(currRow) % gv.mapWidth;
         }
 
         if (currCol < 0) {
-            currCol = mapHeight - p.abs(currCol) % mapHeight;
+            currCol = gv.mapHeight - p.abs(currCol) % gv.mapHeight;
         }
         else {
-            currCol = p.abs(currCol) % mapHeight;
+            currCol = p.abs(currCol) % gv.mapHeight;
         }
 
         console.log('post', {currRow, currCol});
@@ -506,6 +292,161 @@ export default function sketch(p) {
         movingCanvas = false;
         dragging = false;
     };
+
+    
+    function drawBlock(block) {
+        const tiles = block.tiles; 
+        // console.log({x, y, tiles});
+        const blockPixelOffsetX = pixelOffsetX + adjWidth * block.x;
+        const blockPixelOffsetY = pixelOffsetY + adjHeight * block.y;
+
+        p.fill(255);
+        p.stroke(0);
+        p.strokeWeight(2);
+        p.rect(
+            blockPixelOffsetX, 
+            blockPixelOffsetY, 
+            adjWidth,
+            adjHeight,
+        );
+
+        // Проанализировать и нарисовать сверху поля необходимые тайлы
+        for (let i = 0; i < gv.mapHeight; i++) {
+            let y = adj(i) + blockPixelOffsetY;
+
+            for (let j = 0; j < gv.mapWidth; j++) {
+                let tile = tiles[i][j];
+
+                let x = adj(j) + blockPixelOffsetX;
+
+                if (tile) {
+                    // FIXME: Избежать создание функций в цикле
+                    loadImage(tile.img)
+                        .then(img => {
+                            p.image(img, x, y, tileSizeZoomed, tileSizeZoomed)
+                        })
+                        .catch(console.error);
+                }
+
+                if (zoomLevel >= gv.minGridRenderZoom) {
+
+                    let transparencyLevel;
+                    if (zoomLevel >= gv.gridOpacityZoom) {
+                        transparencyLevel = 255;
+                    }
+                    else {
+                        transparencyLevel = p.map(gv.gridOpacityZoom - zoomLevel, 0, gv.gridOpacityZoom - gv.minGridRenderZoom, 255, 0);
+                    }
+
+                    if (j === 0) {
+                        p.stroke(0, transparencyLevel);
+                        p.strokeWeight(1);
+
+                        p.line(blockPixelOffsetX, y, blockPixelOffsetX + adjWidth, y);
+                        // p.text(mapHeight * block.y + i + 1, x - textOffset, y + textOffset);
+                    }
+                    if (i === 0) {
+                        p.stroke(0, transparencyLevel);
+                        p.strokeWeight(1);
+
+                        p.line(x, blockPixelOffsetY, x, blockPixelOffsetY + adjHeight);
+                        // p.text(mapWidth * block.x + j + 1, x + textOffset, y - textOffset);
+                    }
+                }
+            }
+        } 
+    }
+    function drawBlockButtons(block) {
+        for (let label in block.connections) {
+            if (block.connections[label]) {
+                continue;
+            }
+
+            p.push();
+            p.fill(200);
+            p.strokeWeight(1);
+            p.stroke(0, 20);
+            // p.translate(p.width / 2, p.height / 2);
+
+            const blockPixelOffsetX = pixelOffsetX + adjWidth * block.x;
+            const blockPixelOffsetY = pixelOffsetY + adjHeight * block.y;
+
+            let mouseXOffset, 
+                mouseYOffset
+            ;
+
+            switch(label) {
+                case "left":
+                    p.translate(-20 + blockPixelOffsetX, adjHeight / 2 + blockPixelOffsetY);
+                    mouseXOffset = -20 + blockPixelOffsetX;
+                    mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
+                    
+                    p.rotate(-p.PI / 2);
+                    break;
+                case "right":
+                    p.translate(adjWidth + blockPixelOffsetX + 20, adjHeight / 2 + blockPixelOffsetY);
+                    mouseXOffset = adjWidth + blockPixelOffsetX + 20;
+                    mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
+
+                    p.rotate(p.PI / 2);
+                    break;
+                case "up":
+                    p.translate(adjWidth / 2 + blockPixelOffsetX, -20 + blockPixelOffsetY);
+                    mouseXOffset = adjWidth / 2 + blockPixelOffsetX;
+                    mouseYOffset = -20 + blockPixelOffsetY;
+                    break;
+                case "down":
+                    p.translate(adjWidth / 2 + blockPixelOffsetX, 20 + blockPixelOffsetY + adjHeight);
+                    mouseXOffset = adjWidth / 2 + blockPixelOffsetX;
+                    mouseYOffset = 20 + blockPixelOffsetY + adjHeight;
+
+                    p.rotate(p.PI);
+                    break;
+
+                default:
+                    throw new Error('No such direciton label:', label);
+            }
+            p.triangle(-20, 10, 0, -10, 20, 10);
+            // FIXME:
+            // if (ptInTriangle(p.mouseX - mouseXOffset, p.mouseY - mouseYOffset, -20, 10, 0, -10, 20, 10)) {
+            // Временно для ускорения написания вместо просчитывания столкновения мыши с треугольником использую круглый хитбокс
+            // Код выше РАБОТАЕТ, но всегда предпологает, что треугольник смотрит ВВЕРХ
+            if (p.dist(p.mouseX - mouseXOffset, p.mouseY - mouseYOffset, 0, 0) <= 18) {
+                if (dragMode === "draw") {
+                    p.cursor('pointer');
+                }
+
+                if (p.mouseIsPressed) {
+                    console.log('Intersection w/', label, 'on block x:', block.x, 'y:', block.y);
+                    let newBlockX = block.x,
+                        newBlockY = block.y
+                    ;
+
+                    switch(label) {
+                        case "left":
+                            newBlockX--;
+                            break;
+                        case "right":
+                            newBlockX++;
+                            break;
+                        case "up":
+                            newBlockY--;
+                            break;
+                        case "down":
+                            newBlockY++;
+                            break;
+
+                        default:
+                            throw new Error('No such direciton label:', label);
+                    }
+
+                    mapList.createBlock(newBlockX, newBlockY);
+                }
+            }
+
+            p.pop();
+        }
+    }
 }
 
 // Проверяет, если точка находится внутри треугольника (я внаглую стырил это отсюда 
