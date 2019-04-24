@@ -66,14 +66,7 @@ export default function sketch(p) {
             this.x = x;
             this.y = y;
 
-            this.connections = {
-                left:  mapList.blockExists(x - 1, y),
-                right: mapList.blockExists(x + 1, y),
-                up:    mapList.blockExists(x, y - 1),
-                down:  mapList.blockExists(x, y + 1)
-            }
-
-            console.log({x, y, conn: this.connections});
+            this.updateConnections();
 
             this.tiles = [];
             for (let i = 0; i < mapHeight; i++) {
@@ -114,7 +107,6 @@ export default function sketch(p) {
                     let tile = tiles[i][j];
 
                     let x = adj(j) + blockPixelOffsetX;
-                    //p.rect(x, y, tileSize * zoomLevel, tileSize * zoomLevel);
 
                     if (tile) {
                         // FIXME: Избежать создание функций в цикле
@@ -492,7 +484,7 @@ export default function sketch(p) {
             p.cursor('grabbing');
             movingCanvas = true;
             pixelOffsetX += p.mouseX - p.pmouseX;
-            pixelOffsetY += p.mouseY - p.pmouseY; 
+            pixelOffsetY += p.mouseY - p.pmouseY;
         } else if (dragMode === "draw") {
             if (activeImageLabel) {
                 block.tiles[currCol][currRow] = {img: activeImageLabel};
