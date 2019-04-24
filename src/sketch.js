@@ -1,11 +1,11 @@
-import MapList from "./sketch_modules/MapList";
+import MapList from "./modules/MapList";
 import {
     TILE_SIZE,
     MAP_WIDTH,
     MAP_HEIGHT,
     MIN_GRID_RENDER_ZOOM,
     GRID_OPACITY_ZOOM
-} from './sketch_modules/Constants';
+} from './modules/Constants';
 
 import loadImageMemo from './modules/loadImageWithMemo';
 
