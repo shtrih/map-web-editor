@@ -3,8 +3,6 @@ import {
     TILE_SIZE,
     MAP_WIDTH,
     MAP_HEIGHT,
-    MIN_GRID_RENDER_ZOOM,
-    GRID_OPACITY_ZOOM
 } from '../modules/Constants';
 
 import loadImageMemo from '../modules/loadImageWithMemo';
@@ -46,7 +44,10 @@ export default function sketch(p) {
         adjWidth = adj(MAP_WIDTH);
         adjHeight = adj(MAP_HEIGHT);
 
-        mapList.createBlock(0, 0);
+        mapList
+            .createBlock(0, 0)
+            .renderToBuffer(p)
+        ;
     };
 
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
@@ -65,7 +66,6 @@ export default function sketch(p) {
 
         analyzeMouseGlobal();
         analyzeKeyboard();
-        p.background(150);
 
         renderBoard();
 
@@ -137,19 +137,12 @@ export default function sketch(p) {
     }
 
     function renderBoard() {
-        p.textSize(TILE_SIZE / 2 * zoomLevel);
+        p.background(150);
 
         adjWidth = adj(MAP_WIDTH);
         adjHeight = adj(MAP_HEIGHT);
 
-        mapList.loopThrough(block => {
-            drawBlock(block);
-
-            if (showExpandButtons) {
-                drawBlockButtons(block);
-            }
-        });
-
+        mapList.loopThrough(drawBlock);
     }
 
     // p.windowResized = function () {
@@ -255,16 +248,25 @@ export default function sketch(p) {
             pixelOffsetY += p.mouseY - p.pmouseY;
         } else if (dragMode === "draw") {
             if (activeImageLabel) {
-                block.tiles[currCol][currRow] = {img: activeImageLabel};
-            }
+                if (block.tiles[currCol][currRow]) {
+                    if (block.tiles[currCol][currRow].img === activeImageLabel) {
+                        return;
+                    }
+                }
 
+                block.tiles[currCol][currRow] = {img: activeImageLabel};
+                block.renderToBuffer(p);
+            }
         } else if (dragMode === "erase") {
-            block.tiles[currCol][currRow] = null;
+            if (block.tiles[currCol][currRow]) {
+                block.tiles[currCol][currRow] = null;
+                block.renderToBuffer(p)
+            }
         }
 
         dragPrevX = p.mouseX;
         dragPrevY = p.mouseY;
-    };
+    }
 
     p.mousePressed = function (event) {
         dragging = true;
@@ -275,64 +277,14 @@ export default function sketch(p) {
         dragging = false;
     };
 
+    /**
+     * @param {MapBlock} block
+     */
     function drawBlock(block) {
-        const tiles = block.tiles;
-        // console.log({x, y, tiles});
-        const blockPixelOffsetX = pixelOffsetX + adjWidth * block.x;
-        const blockPixelOffsetY = pixelOffsetY + adjHeight * block.y;
+        p.image(block.graphicsBuffer, pixelOffsetX + adjWidth * block.x, pixelOffsetY + adjHeight * block.y, adjWidth, adjHeight);
 
-        p.fill(255);
-        p.stroke(0);
-        p.strokeWeight(2);
-        p.rect(
-            blockPixelOffsetX,
-            blockPixelOffsetY,
-            adjWidth,
-            adjHeight,
-        );
-
-        // Проанализировать и нарисовать сверху поля необходимые тайлы
-        for (let i = 0; i < MAP_HEIGHT; i++) {
-            let y = adj(i) + blockPixelOffsetY;
-
-            for (let j = 0; j < MAP_WIDTH; j++) {
-                let tile = tiles[i][j];
-
-                let x = adj(j) + blockPixelOffsetX;
-
-                if (tile) {
-                    tileImage = loadImageMemo(tile.img, p);
-                    if (tileImage) {
-                        p.image(tileImage, x, y, tileSizeZoomed, tileSizeZoomed)
-                    }
-                }
-
-                if (zoomLevel >= MIN_GRID_RENDER_ZOOM) {
-
-                    let transparencyLevel;
-                    if (zoomLevel >= GRID_OPACITY_ZOOM) {
-                        transparencyLevel = 255;
-                    }
-                    else {
-                        transparencyLevel = p.map(GRID_OPACITY_ZOOM - zoomLevel, 0, GRID_OPACITY_ZOOM - MIN_GRID_RENDER_ZOOM, 255, 0);
-                    }
-
-                    if (j === 0) {
-                        p.stroke(0, transparencyLevel);
-                        p.strokeWeight(1);
-
-                        p.line(blockPixelOffsetX, y, blockPixelOffsetX + adjWidth, y);
-                        // p.text(MAP_HEIGHT * block.y + i + 1, x - textOffset, y + textOffset);
-                    }
-                    if (i === 0) {
-                        p.stroke(0, transparencyLevel);
-                        p.strokeWeight(1);
-
-                        p.line(x, blockPixelOffsetY, x, blockPixelOffsetY + adjHeight);
-                        // p.text(MAP_WIDTH * block.x + j + 1, x + textOffset, y - textOffset);
-                    }
-                }
-            }
+        if (showExpandButtons) {
+            drawBlockButtons(block);
         }
     }
 

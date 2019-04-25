@@ -5,12 +5,22 @@ export default class MapList {
         this.blocks = {};
     }
 
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @return {MapBlock|undefined} block
+     */
     get(x, y) {
         return this.blocks[`${x}:${y}`];
     }
 
-    set(x, y, val) {
-        this.blocks[`${x}:${y}`] = val;
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @param {MapBlock} block
+     */
+    set(x, y, block) {
+        this.blocks[`${x}:${y}`] = block;
 
         if (this.blockExists(x, y + 1)) {
             this.updateConnections(x, y + 1);
@@ -26,21 +36,41 @@ export default class MapList {
         }
     }
 
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @return {MapBlock} block
+     */
     createBlock(x, y) {
-        this.set(x, y, new MapBlock(x, y));
+        const result = new MapBlock(x, y);
+        this.set(x, y, result);
         this.updateConnections(x, y);
+
+        return result;
     }
 
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @return {boolean}
+     */
     blockExists(x, y) {
         return (this.blocks[`${x}:${y}`] !== undefined);
     }
 
+    /**
+     * @param {function} f
+     */
     loopThrough(f) {
         for (let blockName in this.blocks) {
             f(this.blocks[blockName]);
         }
     }
 
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
     updateConnections(x, y) {
         const b = this.get(x, y);
         if (b) {
