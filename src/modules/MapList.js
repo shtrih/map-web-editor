@@ -19,21 +19,14 @@ export default class MapList {
      * @param {Number} y
      * @param {MapBlock} block
      */
-    set(x, y, block) {
+    add(x, y, block) {
         this.blocks[`${x}:${y}`] = block;
 
-        if (this.blockExists(x, y + 1)) {
-            this.updateConnections(x, y + 1);
-        }
-        if (this.blockExists(x, y - 1)) {
-            this.updateConnections(x, y - 1);
-        }
-        if (this.blockExists(x + 1, y)) {
-            this.updateConnections(x + 1, y);
-        }
-        if (this.blockExists(x - 1, y)) {
-            this.updateConnections(x - 1, y);
-        }
+        this.updateConnections(x, y);
+        this.updateConnections(x, y + 1);
+        this.updateConnections(x, y - 1);
+        this.updateConnections(x + 1, y);
+        this.updateConnections(x - 1, y);
     }
 
     /**
@@ -43,8 +36,8 @@ export default class MapList {
      */
     createBlock(x, y) {
         const result = new MapBlock(x, y);
-        this.set(x, y, result);
-        this.updateConnections(x, y);
+
+        this.add(x, y, result);
 
         return result;
     }

@@ -1,5 +1,5 @@
-import {MAP_HEIGHT, MAP_WIDTH, TILE_SIZE} from './Constants';
-import loadImageMemo from '../modules/loadImageWithMemo';
+import {MAP_HEIGHT, MAP_WIDTH, TILE_SIZE} from './constants';
+import loadImageMemo from '../modules/loadImageMemo';
 
 export default class MapBlock {
     constructor(x, y) {
@@ -44,12 +44,6 @@ export default class MapBlock {
 
                 if (this.tiles[i][j]) {
                     tileImage = loadImageMemo(this.tiles[i][j].img, p);
-                    if (tileImage) {
-                        p.image(tileImage, x, y, TILE_SIZE, TILE_SIZE)
-                    }
-                }
-                else {
-                    tileImage = loadImageMemo('wall-square', p);
                     if (tileImage) {
                         p.image(tileImage, x, y, TILE_SIZE, TILE_SIZE)
                     }

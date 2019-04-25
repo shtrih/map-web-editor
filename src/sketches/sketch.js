@@ -3,9 +3,9 @@ import {
     TILE_SIZE,
     MAP_WIDTH,
     MAP_HEIGHT,
-} from '../modules/Constants';
+} from '../modules/constants';
 
-import loadImageMemo from '../modules/loadImageWithMemo';
+import loadImageMemo from '../modules/loadImageMemo';
 
 export default function sketch(p) {
     let loopAllowed = false,
@@ -372,7 +372,10 @@ export default function sketch(p) {
                             throw new Error('No such direciton label:', label);
                     }
 
-                    mapList.createBlock(newBlockX, newBlockY);
+                    mapList
+                        .createBlock(newBlockX, newBlockY)
+                        .renderToBuffer(p)
+                    ;
                 }
             }
 
