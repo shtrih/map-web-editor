@@ -1,12 +1,19 @@
 import React, { Component } from 'react';
 
 import P5Wrapper from 'react-p5-wrapper';
-import sketch from './sketch.js';
+import sketchMain from './sketches/sketch';
+import sketchFPSCounter from './sketches/sketchFPSCounter';
 
 import AssetGroups from './components/AssetGroups';
 import AssetObjects from './components/AssetObjects';
 import Tools from './components/Tools';
 import Layers from './components/Layers';
+
+import {
+    HotKeys,
+    GlobalHotKeys,
+    configure as hotKeyConfigure,
+} from 'react-hotkeys';
 
 import 'materialize-css/dist/css/materialize.min.css'
 
@@ -78,7 +85,7 @@ class App extends Component {
             <div id="workscreen">
                 <div id="mapEditor">
                     <P5Wrapper
-                        sketch={sketch}
+                        sketch={sketchMain}
                         activeAsset={this.state.activeAsset}
                     />
                 </div>
@@ -86,6 +93,11 @@ class App extends Component {
                 <div id="sidePanel">
                     <div className="model-preview">
                         <h3 className="center-align">3D model preview</h3>
+                        <P5Wrapper
+                            sketch={sketchFPSCounter}
+                            width="100"
+                            height="50"
+                        />
                     </div>
                     <div className="instruments">
                         <Tools />

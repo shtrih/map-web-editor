@@ -1,11 +1,11 @@
-import MapList from "./sketch_modules/MapList";
+import MapList from "../modules/MapList";
 import {
     TILE_SIZE,
     MAP_WIDTH,
     MAP_HEIGHT,
-    MIN_GRID_RENDER_ZOOM,
-    GRID_OPACITY_ZOOM
-} from './sketch_modules/Constants';
+} from '../modules/constants';
+
+import loadImageMemo from '../modules/loadImageMemo';
 
 export default function sketch(p) {
     let loopAllowed = false,
@@ -21,87 +21,64 @@ export default function sketch(p) {
 
         ghostFigure = null,
 
-        activeAsset = null,
-        activeImage = null,
         activeImageLabel = null,
         tileSizeZoomed = null,
         textOffset = null,
         adjWidth = null,
-        adjHeight = null
+        adjHeight = null,
+        tileImage = null
     ;
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
         p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
 
         // TODO: Replace this with code that centers the field
-        pixelOffsetX = 100;
-        pixelOffsetY = 100;
+        pixelOffsetX = TILE_SIZE;
+        pixelOffsetY = TILE_SIZE;
         zoomLevel = 0.5;
 
         tileSizeZoomed = TILE_SIZE * zoomLevel;
         textOffset = tileSizeZoomed / 2;
 
         loopAllowed = true;
+        adjWidth = adj(MAP_WIDTH);
+        adjHeight = adj(MAP_HEIGHT);
 
-        mapList.createBlock(0, 0);
+        mapList
+            .createBlock(0, 0)
+            .renderToBuffer(p)
+        ;
     };
-
-    const imgCache = {};
-    function loadImage(name) {
-        return new Promise((res, rej) => {
-            if (imgCache[name]) {
-                return res(imgCache[name]);
-            }
-
-            p.loadImage(`/images/objects/${name}.jpg`, img => {
-                imgCache[name] = img;
-                res(img);
-            });
-        });
-    }
-
-    // function loadImage(name) {
-    //     if (imgCache[name]) {
-    //         return imgCache[name];
-    //     }
-    // }
 
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
         console.log('myCustomRedrawAccordingToNewPropsHandler', props);
 
         if (props.activeAsset) {
-            loadImage(props.activeAsset.img)
-                .then(img => {
-                    activeImage = img;
-                    activeImageLabel = props.activeAsset.img;
-                })
-                .catch(console.error);
+            loadImageMemo(props.activeAsset.img, p);
+            activeImageLabel = props.activeAsset.img;
         }
     };
 
     p.draw = function () {
-        if (p.frameCount % 200 === 0) {
-            console.log("fps:", p.frameRate(), "mapList:", mapList);
-        }
-
         if (!loopAllowed) {
             return;
         }
 
         analyzeMouseGlobal();
         analyzeKeyboard();
-        p.background(150);
 
         renderBoard();
 
         if (ghostFigure) {
-            loadImage(ghostFigure.img)
-                .then(img => {
-                    p.push();
-                        p.tint(0, 255, 0, 128);
-                        p.image(img, adj(ghostFigure.x) + pixelOffsetX, adj(ghostFigure.y) + pixelOffsetY, tileSizeZoomed, tileSizeZoomed);
-                    p.pop();
-                });
+            tileImage = loadImageMemo(ghostFigure.img, p);
+            if (tileImage) {
+                // region 'Image Tint'
+                p.push();
+                p.tint(0, 255, 0, 128);
+                p.image(tileImage, adj(ghostFigure.x) + pixelOffsetX, adj(ghostFigure.y) + pixelOffsetY, tileSizeZoomed, tileSizeZoomed);
+                p.pop();
+                // endregion
+            }
         }
 
         if (dragging) {
@@ -160,19 +137,12 @@ export default function sketch(p) {
     }
 
     function renderBoard() {
-        p.textSize(TILE_SIZE / 2 * zoomLevel);
+        p.background(150);
 
         adjWidth = adj(MAP_WIDTH);
         adjHeight = adj(MAP_HEIGHT);
 
-        mapList.loopThrough(block => {
-            drawBlock(block);
-
-            if (showExpandButtons) {
-                drawBlockButtons(block);
-            }
-        });
-
+        mapList.loopThrough(drawBlock);
     }
 
     // p.windowResized = function () {
@@ -278,16 +248,25 @@ export default function sketch(p) {
             pixelOffsetY += p.mouseY - p.pmouseY;
         } else if (dragMode === "draw") {
             if (activeImageLabel) {
-                block.tiles[currCol][currRow] = {img: activeImageLabel};
-            }
+                if (block.tiles[currCol][currRow]) {
+                    if (block.tiles[currCol][currRow].img === activeImageLabel) {
+                        return;
+                    }
+                }
 
+                block.tiles[currCol][currRow] = {img: activeImageLabel};
+                block.renderToBuffer(p);
+            }
         } else if (dragMode === "erase") {
-            block.tiles[currCol][currRow] = null;
+            if (block.tiles[currCol][currRow]) {
+                block.tiles[currCol][currRow] = null;
+                block.renderToBuffer(p)
+            }
         }
 
         dragPrevX = p.mouseX;
         dragPrevY = p.mouseY;
-    };
+    }
 
     p.mousePressed = function (event) {
         dragging = true;
@@ -298,66 +277,20 @@ export default function sketch(p) {
         dragging = false;
     };
 
+    /**
+     * @param {MapBlock} block
+     */
     function drawBlock(block) {
-        const tiles = block.tiles;
-        // console.log({x, y, tiles});
-        const blockPixelOffsetX = pixelOffsetX + adjWidth * block.x;
-        const blockPixelOffsetY = pixelOffsetY + adjHeight * block.y;
-
-        p.fill(255);
-        p.stroke(0);
-        p.strokeWeight(2);
-        p.rect(
-            blockPixelOffsetX,
-            blockPixelOffsetY,
+        p.image(
+            block.graphicsBuffer,
+            pixelOffsetX + adjWidth * block.x,
+            pixelOffsetY + adjHeight * block.y,
             adjWidth,
-            adjHeight,
+            adjHeight
         );
 
-        // Проанализировать и нарисовать сверху поля необходимые тайлы
-        for (let i = 0; i < MAP_HEIGHT; i++) {
-            let y = adj(i) + blockPixelOffsetY;
-
-            for (let j = 0; j < MAP_WIDTH; j++) {
-                let tile = tiles[i][j];
-
-                let x = adj(j) + blockPixelOffsetX;
-
-                if (tile) {
-                    // FIXME: Избежать создание функций в цикле
-                    loadImage(tile.img)
-                        .then(img => {
-                            p.image(img, x, y, tileSizeZoomed, tileSizeZoomed)
-                        })
-                        .catch(console.error);
-                }
-
-                if (zoomLevel >= MIN_GRID_RENDER_ZOOM) {
-
-                    let transparencyLevel;
-                    if (zoomLevel >= GRID_OPACITY_ZOOM) {
-                        transparencyLevel = 255;
-                    }
-                    else {
-                        transparencyLevel = p.map(GRID_OPACITY_ZOOM - zoomLevel, 0, GRID_OPACITY_ZOOM - MIN_GRID_RENDER_ZOOM, 255, 0);
-                    }
-
-                    if (j === 0) {
-                        p.stroke(0, transparencyLevel);
-                        p.strokeWeight(1);
-
-                        p.line(blockPixelOffsetX, y, blockPixelOffsetX + adjWidth, y);
-                        // p.text(MAP_HEIGHT * block.y + i + 1, x - textOffset, y + textOffset);
-                    }
-                    if (i === 0) {
-                        p.stroke(0, transparencyLevel);
-                        p.strokeWeight(1);
-
-                        p.line(x, blockPixelOffsetY, x, blockPixelOffsetY + adjHeight);
-                        // p.text(MAP_WIDTH * block.x + j + 1, x + textOffset, y - textOffset);
-                    }
-                }
-            }
+        if (showExpandButtons) {
+            drawBlockButtons(block);
         }
     }
 
@@ -445,7 +378,10 @@ export default function sketch(p) {
                             throw new Error('No such direciton label:', label);
                     }
 
-                    mapList.createBlock(newBlockX, newBlockY);
+                    mapList
+                        .createBlock(newBlockX, newBlockY)
+                        .renderToBuffer(p)
+                    ;
                 }
             }
 
