@@ -281,7 +281,13 @@ export default function sketch(p) {
      * @param {MapBlock} block
      */
     function drawBlock(block) {
-        p.image(block.graphicsBuffer, pixelOffsetX + adjWidth * block.x, pixelOffsetY + adjHeight * block.y, adjWidth, adjHeight);
+        p.image(
+            block.graphicsBuffer,
+            pixelOffsetX + adjWidth * block.x,
+            pixelOffsetY + adjHeight * block.y,
+            adjWidth,
+            adjHeight
+        );
 
         if (showExpandButtons) {
             drawBlockButtons(block);

@@ -1,10 +1,15 @@
-import {MAP_HEIGHT, MAP_WIDTH, TILE_SIZE} from './constants';
+import {
+    MAP_HEIGHT,
+    MAP_WIDTH,
+    TILE_SIZE
+} from './constants';
 import loadImageMemo from '../modules/loadImageMemo';
 
 export default class MapBlock {
     constructor(x, y) {
         this.x = x;
         this.y = y;
+        this.graphicsBuffer = null;
 
         this.tiles = [];
         for (let i = 0; i < MAP_HEIGHT; i++) {

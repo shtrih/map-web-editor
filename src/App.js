@@ -9,6 +9,12 @@ import AssetObjects from './components/AssetObjects';
 import Tools from './components/Tools';
 import Layers from './components/Layers';
 
+import {
+    HotKeys,
+    GlobalHotKeys,
+    configure as hotKeyConfigure,
+} from 'react-hotkeys';
+
 import 'materialize-css/dist/css/materialize.min.css'
 
 import './index.css';
