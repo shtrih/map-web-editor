@@ -109,24 +109,14 @@ export default function sketch(p) {
             return;
         }
 
-        const adjTileSize = TILE_SIZE * zoomLevel;
-        const adjX = p.mouseX - pixelOffsetX;
-        const adjY = p.mouseY - pixelOffsetY;
-
-        const currRow = p.floor(adjX / adjTileSize);
-        const currCol = p.floor(adjY / adjTileSize);
-
-        // console.log(p.mouseX, p.mouseY, currRow, currCol);
-
+        ghostFigure = null;
         if (dragMode === "draw" && activeImageLabel) {
+            const tilePosition = getCurrentTilePosition(p.mouseX, p.mouseY);
+
             ghostFigure = {
-                x: currRow,
-                y: currCol,
                 img: activeImageLabel,
+                ...tilePosition
             };
-        }
-        else {
-            ghostFigure = null;
         }
     }
 
@@ -203,44 +193,17 @@ export default function sketch(p) {
             return;
         }
 
-        const adjTileSize = TILE_SIZE * zoomLevel;
-        const adjX = p.mouseX - pixelOffsetX;
-        const adjY = p.mouseY - pixelOffsetY;
-
-        let currRow = p.floor(adjX / adjTileSize);
-        let currCol = p.floor(adjY / adjTileSize);
-
-        const mapBlockX = p.floor(currRow / MAP_WIDTH);
-        const mapBlockY = p.floor(currCol / MAP_HEIGHT);
-
-        console.log('pre', {currRow, currCol});
-
-        // Нормализировать currRow и currRow
-        if (currRow < 0) {
-            currRow = MAP_WIDTH - p.abs(currRow) % MAP_WIDTH;
-        }
-        else {
-            currRow = p.abs(currRow) % MAP_WIDTH;
-        }
-
-        if (currCol < 0) {
-            currCol = MAP_HEIGHT - p.abs(currCol) % MAP_HEIGHT;
-        }
-        else {
-            currCol = p.abs(currCol) % MAP_HEIGHT;
-        }
-
-        console.log('post', {currRow, currCol});
+        const tilePosition = getCurrentTilePosition(p.mouseX, p.mouseY);
+        const {x: mapBlockX, y: mapBlockY} = getCurrentBlockPosition(tilePosition);
 
         if (dragMode !== "move"
-            && (currRow < 0
-            || currCol < 0
-            || !mapList.blockExists(mapBlockX, mapBlockY))
+            && !mapList.blockExists(mapBlockX, mapBlockY)
         ) {
             return;
         }
 
         const block = mapList.get(mapBlockX, mapBlockY);
+        const {x: currRow, y: currCol} = getCurrentTilePositionInBlock(tilePosition);
 
         if (dragMode === "move") {
             p.cursor('grabbing');
@@ -389,6 +352,76 @@ export default function sketch(p) {
             p.pop();
         }
     }
+
+    /**
+     * Возвращает позиции клетки под курсором безотносительно блоков.
+     *
+     * @param {number} mouseX
+     * @param {number} mouseY
+     * @return {{x: number, y: number}}
+     */
+    function getCurrentTilePosition(mouseX, mouseY) {
+        return {
+            x: Math.floor((mouseX - pixelOffsetX) / tileSizeZoomed),
+            y: Math.floor((mouseY - pixelOffsetY) / tileSizeZoomed)
+        }
+    }
+
+    /**
+     * Возвращает позиции блока под курсором, основываясь на позициях тайла.
+     *
+     * @param tileX
+     * @param tileY
+     * @return {{x: number, y: number}}
+     */
+    function getCurrentBlockPosition( {x: tileX, y: tileY} ) {
+        return {
+            x: Math.floor(tileX / MAP_WIDTH),
+            y: Math.floor(tileY / MAP_HEIGHT)
+        };
+    }
+
+    /*
+     function getCurrentBlockPosition(mouseX, mouseY) {
+        const tilePositions = getCurrentTilePosition(mouseX, mouseY);
+
+        return {
+            x: Math.floor(tilePositions.x / MAP_WIDTH),
+            y: Math.floor(tilePositions.y / MAP_HEIGHT)
+        };
+     }
+     */
+
+    /**
+     * Возвращает позиции текущего тайла (под курсором) в блоке.
+     *
+     * @param {number} tileX Позиция тайла X на сетке
+     * @param {number} tileY Позиция тайла Y на сетке
+     * @return {{x: number, y: number}}
+     */
+    function getCurrentTilePositionInBlock( {x: tileX, y: tileY} ) {
+        const result = {
+            x: 0,
+            y: 0
+        };
+
+        if (tileX < 0) {
+            result.x = (tileX % MAP_WIDTH + MAP_WIDTH) % MAP_WIDTH;
+        }
+        else {
+            result.x = tileX % MAP_WIDTH;
+        }
+
+        if (tileY < 0) {
+            result.y = (tileY % MAP_HEIGHT + MAP_HEIGHT) % MAP_HEIGHT;
+        }
+        else {
+            result.y = tileY % MAP_HEIGHT;
+        }
+
+        return result
+    }
+
 }
 
 // Проверяет, если точка находится внутри треугольника (я внаглую стырил это отсюда
