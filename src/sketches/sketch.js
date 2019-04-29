@@ -23,9 +23,8 @@ export default function sketch(p) {
 
         activeImageLabel = null,
         tileSizeZoomed = null,
-        textOffset = null,
-        adjWidth = null,
-        adjHeight = null,
+        adjBlockWidth = null,
+        adjBlockHeight = null,
         tileImage = null
     ;
     p.setup = function () {
@@ -38,11 +37,10 @@ export default function sketch(p) {
         zoomLevel = 0.5;
 
         tileSizeZoomed = TILE_SIZE * zoomLevel;
-        textOffset = tileSizeZoomed / 2;
 
         loopAllowed = true;
-        adjWidth = adj(MAP_WIDTH);
-        adjHeight = adj(MAP_HEIGHT);
+        adjBlockWidth = adj(MAP_WIDTH);
+        adjBlockHeight = adj(MAP_HEIGHT);
 
         mapList
             .createBlock(0, 0)
@@ -180,10 +178,13 @@ export default function sketch(p) {
         pixelOffsetX += adjX - postZoomX;
         pixelOffsetY += adjY - postZoomY;
 
-        tileSizeZoomed = TILE_SIZE * zoomLevel;
-        textOffset = tileSizeZoomed / 2;
+        pixelOffsetX = Math.round(pixelOffsetX);
+        pixelOffsetY = Math.round(pixelOffsetY);
 
-        console.log("zoomLevel:", zoomLevel);
+        tileSizeZoomed = TILE_SIZE * zoomLevel;
+
+        adjBlockWidth = adj(MAP_WIDTH);
+        adjBlockHeight = adj(MAP_HEIGHT);
     };
 
     // Используем свои переменные нарочно
@@ -283,10 +284,10 @@ export default function sketch(p) {
     function drawBlock(block) {
         p.image(
             block.graphicsBuffer,
-            pixelOffsetX + adjWidth * block.x,
-            pixelOffsetY + adjHeight * block.y,
-            adjWidth,
-            adjHeight
+            pixelOffsetX + adjBlockWidth * block.x,
+            pixelOffsetY + adjBlockHeight * block.y,
+            adjBlockWidth,
+            adjBlockHeight
         );
 
         if (showExpandButtons) {
@@ -306,8 +307,8 @@ export default function sketch(p) {
             p.stroke(0, 20);
             // p.translate(p.width / 2, p.height / 2);
 
-            const blockPixelOffsetX = pixelOffsetX + adjWidth * block.x;
-            const blockPixelOffsetY = pixelOffsetY + adjHeight * block.y;
+            const blockPixelOffsetX = pixelOffsetX + adjBlockWidth * block.x;
+            const blockPixelOffsetY = pixelOffsetY + adjBlockHeight * block.y;
 
             let mouseXOffset,
                 mouseYOffset
@@ -315,28 +316,28 @@ export default function sketch(p) {
 
             switch(label) {
                 case "left":
-                    p.translate(-20 + blockPixelOffsetX, adjHeight / 2 + blockPixelOffsetY);
+                    p.translate(-20 + blockPixelOffsetX, adjBlockHeight / 2 + blockPixelOffsetY);
                     mouseXOffset = -20 + blockPixelOffsetX;
-                    mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
+                    mouseYOffset = adjBlockHeight / 2 + blockPixelOffsetY;
 
                     p.rotate(-p.PI / 2);
                     break;
                 case "right":
-                    p.translate(adjWidth + blockPixelOffsetX + 20, adjHeight / 2 + blockPixelOffsetY);
-                    mouseXOffset = adjWidth + blockPixelOffsetX + 20;
-                    mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
+                    p.translate(adjBlockWidth + blockPixelOffsetX + 20, adjBlockHeight / 2 + blockPixelOffsetY);
+                    mouseXOffset = adjBlockWidth + blockPixelOffsetX + 20;
+                    mouseYOffset = adjBlockHeight / 2 + blockPixelOffsetY;
 
                     p.rotate(p.PI / 2);
                     break;
                 case "up":
-                    p.translate(adjWidth / 2 + blockPixelOffsetX, -20 + blockPixelOffsetY);
-                    mouseXOffset = adjWidth / 2 + blockPixelOffsetX;
+                    p.translate(adjBlockWidth / 2 + blockPixelOffsetX, -20 + blockPixelOffsetY);
+                    mouseXOffset = adjBlockWidth / 2 + blockPixelOffsetX;
                     mouseYOffset = -20 + blockPixelOffsetY;
                     break;
                 case "down":
-                    p.translate(adjWidth / 2 + blockPixelOffsetX, 20 + blockPixelOffsetY + adjHeight);
-                    mouseXOffset = adjWidth / 2 + blockPixelOffsetX;
-                    mouseYOffset = 20 + blockPixelOffsetY + adjHeight;
+                    p.translate(adjBlockWidth / 2 + blockPixelOffsetX, 20 + blockPixelOffsetY + adjBlockHeight);
+                    mouseXOffset = adjBlockWidth / 2 + blockPixelOffsetX;
+                    mouseYOffset = 20 + blockPixelOffsetY + adjBlockHeight;
 
                     p.rotate(p.PI);
                     break;
