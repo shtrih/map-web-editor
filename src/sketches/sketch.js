@@ -25,7 +25,8 @@ export default function sketch(p) {
         tileSizeZoomed = null,
         adjBlockWidth = null,
         adjBlockHeight = null,
-        tileImage = null
+        tileImage = null,
+        gridImage = null
     ;
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
@@ -46,6 +47,7 @@ export default function sketch(p) {
             .createBlock(0, 0)
             .renderToBuffer(p)
         ;
+        preRenderGrid();
     };
 
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
@@ -174,6 +176,8 @@ export default function sketch(p) {
 
         adjBlockWidth = adj(MAP_WIDTH);
         adjBlockHeight = adj(MAP_HEIGHT);
+
+        preRenderGrid();
     };
 
     // Используем свои переменные нарочно
@@ -421,46 +425,63 @@ export default function sketch(p) {
         return result
     }
 
-    function drawCurrentBlockGrid() {
-        const blockPos = getCurrentBlockPosition(getCurrentTilePosition(p.mouseX, p.mouseY)),
-            curBlock = mapList.get(blockPos.x, blockPos.y),
-            strokeWeight = 1,
-            strokeWeightOffset = strokeWeight / 2
+    function preRenderGrid() {
+        console.log('Prerender');
+        const strokeWeight = 1,
+            strokeWeightOffset = strokeWeight / 2,
+            maxWidth = Math.round(adjBlockWidth - strokeWeightOffset),
+            maxHeight = Math.round(adjBlockHeight - strokeWeightOffset)
         ;
-        if (!curBlock) {
-            return;
+
+        if (gridImage) {
+            gridImage.remove();
         }
+        gridImage = p.createGraphics(Math.ceil(adjBlockWidth + strokeWeight), Math.ceil(adjBlockHeight + strokeWeight));
+
         let x, y;
         for (let i = 0; i <= MAP_HEIGHT; i++) {
             for (let j = 0; j <= MAP_WIDTH; j++) {
                 if (j === 0) {
-                    y = pixelOffsetY + Math.round(tileSizeZoomed * i + adjBlockHeight * curBlock.y - strokeWeightOffset);
+                    y = Math.round(tileSizeZoomed * i - strokeWeightOffset);
 
-                    p.stroke(0, 60);
-                    p.strokeWeight(strokeWeight);
-
-                    p.line(
-                        pixelOffsetX + Math.round(adjBlockWidth * curBlock.x - strokeWeightOffset),
+                    gridImage.stroke(0, 60);
+                    gridImage.strokeWeight(strokeWeight);
+                    gridImage.line(
+                        0,
                         y,
-                        pixelOffsetX + Math.round(adjBlockWidth * (curBlock.x + 1) - strokeWeightOffset),
+                        maxWidth,
                         y
                     );
                 }
                 if (i === 0) {
-                    x = pixelOffsetX + Math.round(tileSizeZoomed * j + adjBlockWidth * curBlock.x - strokeWeightOffset);
+                    x = Math.round(tileSizeZoomed * j - strokeWeightOffset);
 
-                    p.stroke(0, 60);
-                    p.strokeWeight(strokeWeight);
-
-                    p.line(
+                    gridImage.stroke(0, 60);
+                    gridImage.strokeWeight(strokeWeight);
+                    gridImage.line(
                         x,
-                        pixelOffsetY + Math.round(adjBlockHeight * curBlock.y - strokeWeightOffset),
+                        0,
                         x,
-                        pixelOffsetY + Math.round(adjBlockHeight * (curBlock.y + 1) - strokeWeightOffset)
+                        maxHeight
                     );
                 }
             }
         }
+    }
+
+    function drawCurrentBlockGrid() {
+        const blockPos = getCurrentBlockPosition(getCurrentTilePosition(p.mouseX, p.mouseY)),
+            curBlock = mapList.get(blockPos.x, blockPos.y)
+        ;
+        if (!curBlock) {
+            return;
+        }
+
+        p.image(
+            gridImage,
+            pixelOffsetX + adjBlockWidth * curBlock.x,
+            pixelOffsetY + adjBlockHeight * curBlock.y
+        );
     }
 }
 
