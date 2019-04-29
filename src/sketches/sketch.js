@@ -3,6 +3,7 @@ import {
     TILE_SIZE,
     MAP_WIDTH,
     MAP_HEIGHT,
+    MOUSE_WHEEL_MODE,
 } from '../modules/constants';
 
 import loadImageMemo from '../modules/loadImageMemo';
@@ -25,7 +26,8 @@ export default function sketch(p) {
         tileSizeZoomed = null,
         adjBlockWidth = null,
         adjBlockHeight = null,
-        tileImage = null
+        tileImage = null,
+        wheelMode = MOUSE_WHEEL_MODE.tileRotation
     ;
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
@@ -54,6 +56,18 @@ export default function sketch(p) {
         if (props.activeAsset) {
             loadImageMemo(props.activeAsset.img, p);
             activeImageLabel = props.activeAsset.img;
+        }
+        if (props.zoomIn) {
+            zoom(true);
+        }
+        if (props.zoomOut) {
+            zoom(false);
+        }
+        if (props.controlDown) {
+            wheelMode = MOUSE_WHEEL_MODE.zoom;
+        }
+        else {
+            wheelMode = MOUSE_WHEEL_MODE.tileRotation;
         }
     };
 
@@ -145,6 +159,22 @@ export default function sketch(p) {
             return;
         }
 
+        // Prevent browser page zoom (ctrl+scroll)
+        event.preventDefault();
+        event.stopPropagation();
+
+        switch (wheelMode) {
+            case MOUSE_WHEEL_MODE.zoom:
+                zoom(event.deltaY < 0);
+                console.log("zoomLevel:", zoomLevel);
+                break;
+
+            case MOUSE_WHEEL_MODE.tileRotation:
+            default:
+        }
+    };
+
+    function zoom(positiveDelta) {
         const adjX = p.mouseX - pixelOffsetX,
             adjY = p.mouseY - pixelOffsetY,
             zoomCoefficient = 1.1
@@ -153,7 +183,7 @@ export default function sketch(p) {
         let postZoomX = 0,
             postZoomY = 0;
 
-        if (event.deltaY < 0) {
+        if (positiveDelta) {
             zoomLevel *= zoomCoefficient;
             postZoomX = adjX * zoomCoefficient;
             postZoomY = adjY * zoomCoefficient;
@@ -174,7 +204,7 @@ export default function sketch(p) {
 
         adjBlockWidth = adj(MAP_WIDTH);
         adjBlockHeight = adj(MAP_HEIGHT);
-    };
+    }
 
     // Используем свои переменные нарочно
     // (я не использую p.pmouseX и p.pmouseY т.к. они обновляются всегда, а не когда мне нужно)
