@@ -127,10 +127,9 @@ export default function sketch(p) {
     function renderBoard() {
         p.background(150);
 
-        adjWidth = adj(MAP_WIDTH);
-        adjHeight = adj(MAP_HEIGHT);
-
         mapList.loopThrough(drawBlock);
+
+        drawCurrentBlockGrid();
     }
 
     // p.windowResized = function () {
@@ -422,6 +421,47 @@ export default function sketch(p) {
         return result
     }
 
+    function drawCurrentBlockGrid() {
+        const blockPos = getCurrentBlockPosition(getCurrentTilePosition(p.mouseX, p.mouseY)),
+            curBlock = mapList.get(blockPos.x, blockPos.y),
+            strokeWeight = 1,
+            strokeWeightOffset = strokeWeight / 2
+        ;
+        if (!curBlock) {
+            return;
+        }
+        let x, y;
+        for (let i = 0; i <= MAP_HEIGHT; i++) {
+            for (let j = 0; j <= MAP_WIDTH; j++) {
+                if (j === 0) {
+                    y = pixelOffsetY + Math.round(tileSizeZoomed * i + adjBlockHeight * curBlock.y - strokeWeightOffset);
+
+                    p.stroke(0, 60);
+                    p.strokeWeight(strokeWeight);
+
+                    p.line(
+                        pixelOffsetX + Math.round(adjBlockWidth * curBlock.x - strokeWeightOffset),
+                        y,
+                        pixelOffsetX + Math.round(adjBlockWidth * (curBlock.x + 1) - strokeWeightOffset),
+                        y
+                    );
+                }
+                if (i === 0) {
+                    x = pixelOffsetX + Math.round(tileSizeZoomed * j + adjBlockWidth * curBlock.x - strokeWeightOffset);
+
+                    p.stroke(0, 60);
+                    p.strokeWeight(strokeWeight);
+
+                    p.line(
+                        x,
+                        pixelOffsetY + Math.round(adjBlockHeight * curBlock.y - strokeWeightOffset),
+                        x,
+                        pixelOffsetY + Math.round(adjBlockHeight * (curBlock.y + 1) - strokeWeightOffset)
+                    );
+                }
+            }
+        }
+    }
 }
 
 // Проверяет, если точка находится внутри треугольника (я внаглую стырил это отсюда
