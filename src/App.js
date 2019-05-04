@@ -32,6 +32,7 @@ class App extends Component {
              * @see https://github.com/greena13/react-hotkeys/issues/166#issuecomment-488991845
              */
             simulateMissingKeyPressEvents: false,
+            stopEventPropagationAfterHandling: false,
         });
         this.hotKeys = {
             application: {
