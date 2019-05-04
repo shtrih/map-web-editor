@@ -57,13 +57,13 @@ export default function sketch(p) {
             loadImageMemo(props.activeAsset.img, p);
             activeImageLabel = props.activeAsset.img;
         }
-        if (props.zoomIn) {
+        if (props.hotKeyActions.zoomIn) {
             zoom(true);
         }
-        if (props.zoomOut) {
+        if (props.hotKeyActions.zoomOut) {
             zoom(false);
         }
-        if (props.controlDown) {
+        if (props.hotKeyActions.ctrlPressed) {
             wheelMode = MOUSE_WHEEL_MODE.zoom;
         }
         else {

@@ -12,7 +12,7 @@ import Layers from './components/Layers';
 import {
     HotKeys,
     GlobalHotKeys,
-    // configure as hotKeyConfigure,
+    configure as hotKeyConfigure,
 } from 'react-hotkeys';
 
 import 'materialize-css/dist/css/materialize.min.css'
@@ -23,15 +23,19 @@ class App extends Component {
     constructor(props) {
         super(props);
 
-        // hotKeyConfigure({
-        //     logLevel: 'debug',
-        //     stopEventPropagationAfterHandling: false,
-        //     stopEventPropagationAfterIgnoring: false
-        // });
+        hotKeyConfigure({
+            logLevel: 'info',
+
+            /**
+             * В версии 2.0.0-pre5 не работает обработка keyup для клавиш ctrl и других, если эта опция устанвлена в true.
+             * @see https://github.com/greena13/react-hotkeys/issues/166#issuecomment-488991845
+             */
+            simulateMissingKeyPressEvents: false,
+        });
         this.hotKeys = {
             application: {},
             editor: {
-                save: 'ctrl+s',
+                save: ['ctrl+s', 'ctrl+ы'],
             },
             canvas: {
                 zoomIn: [
@@ -42,7 +46,7 @@ class App extends Component {
                     {sequence: 'down', action: 'keydown'},
                     {sequence: 'down', action: 'keyup'},
                 ],
-                controlDown: [
+                ctrlPressed: [
                     {sequence: 'ctrl', action: 'keydown'},
                     {sequence: 'ctrl', action: 'keyup'},
                 ],
@@ -61,15 +65,15 @@ class App extends Component {
             canvas: {
                 zoomIn: (e) => {
                     this.setState({
-                        hotActions: {sketchMain: {zoomIn: e.type !== 'keyup'}}
+                        hotKeyActions: {sketchMain: {zoomIn: e.type !== 'keyup'}}
                     });
                 },
                 zoomOut: (e) => {
                     this.setState({
-                        hotActions: {sketchMain: {zoomOut: e.type !== 'keyup'}}
+                        hotKeyActions: {sketchMain: {zoomOut: e.type !== 'keyup'}}
                     });
                 },
-                controlDown: (e) => {
+                ctrlPressed: (e) => {
                     /**
                      * @see https://github.com/ccampbell/mousetrap/issues/128#issuecomment-102558797
                      */
@@ -78,7 +82,7 @@ class App extends Component {
                     }
 
                     this.setState({
-                        hotActions: {sketchMain: {controlDown: e.type !== 'keyup'}}
+                        hotKeyActions: {sketchMain: {ctrlPressed: e.type !== 'keyup'}}
                     });
                 },
             },
@@ -92,7 +96,7 @@ class App extends Component {
             mainMenuState: null,
             activeAssetGroup: null,
             activeAsset: null,
-            hotActions: {
+            hotKeyActions: {
                 sketchMain: {
                     zoomIn: false,
                     zoomOut: false
@@ -150,15 +154,24 @@ class App extends Component {
 
         return (
             <React.Fragment>
-                {/*<GlobalHotKeys keyMap={this.hotKeys.application} handlers={this.hotKeyHandlers.application} />*/}
-                <HotKeys keyMap={this.hotKeys.editor} handlers={this.hotKeyHandlers.editor}>
+                <GlobalHotKeys
+                    keyMap={this.hotKeys.application}
+                    handlers={this.hotKeyHandlers.application}
+                />
+                <HotKeys
+                    keyMap={this.hotKeys.editor}
+                    handlers={this.hotKeyHandlers.editor}
+                >
                     <div id="workscreen">
                         <div id="mapEditor">
-                            <HotKeys keyMap={this.hotKeys.canvas} handlers={this.hotKeyHandlers.canvas}>
+                            <HotKeys
+                                keyMap={this.hotKeys.canvas}
+                                handlers={this.hotKeyHandlers.canvas}
+                            >
                                 <P5Wrapper
                                     sketch={sketchMain}
                                     activeAsset={this.state.activeAsset}
-                                    {...this.state.hotActions.sketchMain}
+                                    hotKeyActions={{...this.state.hotKeyActions.sketchMain}}
                                 />
                             </HotKeys>
                         </div>
