@@ -8,6 +8,7 @@ import AssetGroups from './components/AssetGroups';
 import AssetObjects from './components/AssetObjects';
 import Tools from './components/Tools';
 import Layers from './components/Layers';
+import HelpDialog from './components/HelpDialog';
 
 import {
     HotKeys,
@@ -33,7 +34,9 @@ class App extends Component {
             simulateMissingKeyPressEvents: false,
         });
         this.hotKeys = {
-            application: {},
+            application: {
+                help: ['?', ','],
+            },
             editor: {
                 save: ['ctrl+s', 'ctrl+ы'],
             },
@@ -53,7 +56,13 @@ class App extends Component {
             },
         };
         this.hotKeyHandlers = {
-            application: {},
+            application: {
+                help: (e) => {
+                    this.setState({
+                        showHelpDialog: true
+                    });
+                },
+            },
             editor: {
                 save: e => {
                     e.stopPropagation();
@@ -101,7 +110,8 @@ class App extends Component {
                     zoomIn: false,
                     zoomOut: false
                 }
-            }
+            },
+            showHelpDialog: false,
         };
     }
 
@@ -203,6 +213,8 @@ class App extends Component {
                                 </div>
                             </div>
                         </div>
+
+                        {this.state.showHelpDialog && <HelpDialog onClose={() => this.setState({showHelpDialog: false})} />}
                     </div>
                 </HotKeys>
             </React.Fragment>
