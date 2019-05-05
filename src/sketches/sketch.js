@@ -23,9 +23,8 @@ export default function sketch(p) {
 
         activeImageLabel = null,
         tileSizeZoomed = null,
-        textOffset = null,
-        adjWidth = null,
-        adjHeight = null,
+        adjBlockWidth = null,
+        adjBlockHeight = null,
         tileImage = null
     ;
     p.setup = function () {
@@ -38,11 +37,10 @@ export default function sketch(p) {
         zoomLevel = 0.5;
 
         tileSizeZoomed = TILE_SIZE * zoomLevel;
-        textOffset = tileSizeZoomed / 2;
 
         loopAllowed = true;
-        adjWidth = adj(MAP_WIDTH);
-        adjHeight = adj(MAP_HEIGHT);
+        adjBlockWidth = adj(MAP_WIDTH);
+        adjBlockHeight = adj(MAP_HEIGHT);
 
         mapList
             .createBlock(0, 0)
@@ -111,24 +109,14 @@ export default function sketch(p) {
             return;
         }
 
-        const adjTileSize = TILE_SIZE * zoomLevel;
-        const adjX = p.mouseX - pixelOffsetX;
-        const adjY = p.mouseY - pixelOffsetY;
-
-        const currRow = p.floor(adjX / adjTileSize);
-        const currCol = p.floor(adjY / adjTileSize);
-
-        // console.log(p.mouseX, p.mouseY, currRow, currCol);
-
+        ghostFigure = null;
         if (dragMode === "draw" && activeImageLabel) {
+            const tilePosition = getCurrentTilePosition(p.mouseX, p.mouseY);
+
             ghostFigure = {
-                x: currRow,
-                y: currCol,
                 img: activeImageLabel,
+                ...tilePosition
             };
-        }
-        else {
-            ghostFigure = null;
         }
     }
 
@@ -139,10 +127,9 @@ export default function sketch(p) {
     function renderBoard() {
         p.background(150);
 
-        adjWidth = adj(MAP_WIDTH);
-        adjHeight = adj(MAP_HEIGHT);
-
         mapList.loopThrough(drawBlock);
+
+        drawCurrentBlockGrid();
     }
 
     // p.windowResized = function () {
@@ -180,10 +167,13 @@ export default function sketch(p) {
         pixelOffsetX += adjX - postZoomX;
         pixelOffsetY += adjY - postZoomY;
 
-        tileSizeZoomed = TILE_SIZE * zoomLevel;
-        textOffset = tileSizeZoomed / 2;
+        pixelOffsetX = Math.round(pixelOffsetX);
+        pixelOffsetY = Math.round(pixelOffsetY);
 
-        console.log("zoomLevel:", zoomLevel);
+        tileSizeZoomed = TILE_SIZE * zoomLevel;
+
+        adjBlockWidth = adj(MAP_WIDTH);
+        adjBlockHeight = adj(MAP_HEIGHT);
     };
 
     // Используем свои переменные нарочно
@@ -202,44 +192,17 @@ export default function sketch(p) {
             return;
         }
 
-        const adjTileSize = TILE_SIZE * zoomLevel;
-        const adjX = p.mouseX - pixelOffsetX;
-        const adjY = p.mouseY - pixelOffsetY;
-
-        let currRow = p.floor(adjX / adjTileSize);
-        let currCol = p.floor(adjY / adjTileSize);
-
-        const mapBlockX = p.floor(currRow / MAP_WIDTH);
-        const mapBlockY = p.floor(currCol / MAP_HEIGHT);
-
-        console.log('pre', {currRow, currCol});
-
-        // Нормализировать currRow и currRow
-        if (currRow < 0) {
-            currRow = MAP_WIDTH - p.abs(currRow) % MAP_WIDTH;
-        }
-        else {
-            currRow = p.abs(currRow) % MAP_WIDTH;
-        }
-
-        if (currCol < 0) {
-            currCol = MAP_HEIGHT - p.abs(currCol) % MAP_HEIGHT;
-        }
-        else {
-            currCol = p.abs(currCol) % MAP_HEIGHT;
-        }
-
-        console.log('post', {currRow, currCol});
+        const tilePosition = getCurrentTilePosition(p.mouseX, p.mouseY);
+        const {x: mapBlockX, y: mapBlockY} = getCurrentBlockPosition(tilePosition);
 
         if (dragMode !== "move"
-            && (currRow < 0
-            || currCol < 0
-            || !mapList.blockExists(mapBlockX, mapBlockY))
+            && !mapList.blockExists(mapBlockX, mapBlockY)
         ) {
             return;
         }
 
         const block = mapList.get(mapBlockX, mapBlockY);
+        const {x: currRow, y: currCol} = getCurrentTilePositionInBlock(tilePosition);
 
         if (dragMode === "move") {
             p.cursor('grabbing');
@@ -283,10 +246,10 @@ export default function sketch(p) {
     function drawBlock(block) {
         p.image(
             block.graphicsBuffer,
-            pixelOffsetX + adjWidth * block.x,
-            pixelOffsetY + adjHeight * block.y,
-            adjWidth,
-            adjHeight
+            pixelOffsetX + adjBlockWidth * block.x,
+            pixelOffsetY + adjBlockHeight * block.y,
+            adjBlockWidth,
+            adjBlockHeight
         );
 
         if (showExpandButtons) {
@@ -306,8 +269,8 @@ export default function sketch(p) {
             p.stroke(0, 20);
             // p.translate(p.width / 2, p.height / 2);
 
-            const blockPixelOffsetX = pixelOffsetX + adjWidth * block.x;
-            const blockPixelOffsetY = pixelOffsetY + adjHeight * block.y;
+            const blockPixelOffsetX = pixelOffsetX + adjBlockWidth * block.x;
+            const blockPixelOffsetY = pixelOffsetY + adjBlockHeight * block.y;
 
             let mouseXOffset,
                 mouseYOffset
@@ -315,28 +278,28 @@ export default function sketch(p) {
 
             switch(label) {
                 case "left":
-                    p.translate(-20 + blockPixelOffsetX, adjHeight / 2 + blockPixelOffsetY);
+                    p.translate(-20 + blockPixelOffsetX, adjBlockHeight / 2 + blockPixelOffsetY);
                     mouseXOffset = -20 + blockPixelOffsetX;
-                    mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
+                    mouseYOffset = adjBlockHeight / 2 + blockPixelOffsetY;
 
                     p.rotate(-p.PI / 2);
                     break;
                 case "right":
-                    p.translate(adjWidth + blockPixelOffsetX + 20, adjHeight / 2 + blockPixelOffsetY);
-                    mouseXOffset = adjWidth + blockPixelOffsetX + 20;
-                    mouseYOffset = adjHeight / 2 + blockPixelOffsetY;
+                    p.translate(adjBlockWidth + blockPixelOffsetX + 20, adjBlockHeight / 2 + blockPixelOffsetY);
+                    mouseXOffset = adjBlockWidth + blockPixelOffsetX + 20;
+                    mouseYOffset = adjBlockHeight / 2 + blockPixelOffsetY;
 
                     p.rotate(p.PI / 2);
                     break;
                 case "up":
-                    p.translate(adjWidth / 2 + blockPixelOffsetX, -20 + blockPixelOffsetY);
-                    mouseXOffset = adjWidth / 2 + blockPixelOffsetX;
+                    p.translate(adjBlockWidth / 2 + blockPixelOffsetX, -20 + blockPixelOffsetY);
+                    mouseXOffset = adjBlockWidth / 2 + blockPixelOffsetX;
                     mouseYOffset = -20 + blockPixelOffsetY;
                     break;
                 case "down":
-                    p.translate(adjWidth / 2 + blockPixelOffsetX, 20 + blockPixelOffsetY + adjHeight);
-                    mouseXOffset = adjWidth / 2 + blockPixelOffsetX;
-                    mouseYOffset = 20 + blockPixelOffsetY + adjHeight;
+                    p.translate(adjBlockWidth / 2 + blockPixelOffsetX, 20 + blockPixelOffsetY + adjBlockHeight);
+                    mouseXOffset = adjBlockWidth / 2 + blockPixelOffsetX;
+                    mouseYOffset = 20 + blockPixelOffsetY + adjBlockHeight;
 
                     p.rotate(p.PI);
                     break;
@@ -386,6 +349,117 @@ export default function sketch(p) {
             }
 
             p.pop();
+        }
+    }
+
+    /**
+     * Возвращает позиции клетки под курсором безотносительно блоков.
+     *
+     * @param {number} mouseX
+     * @param {number} mouseY
+     * @return {{x: number, y: number}}
+     */
+    function getCurrentTilePosition(mouseX, mouseY) {
+        return {
+            x: Math.floor((mouseX - pixelOffsetX) / tileSizeZoomed),
+            y: Math.floor((mouseY - pixelOffsetY) / tileSizeZoomed)
+        }
+    }
+
+    /**
+     * Возвращает позиции блока под курсором, основываясь на позициях тайла.
+     *
+     * @param tileX
+     * @param tileY
+     * @return {{x: number, y: number}}
+     */
+    function getCurrentBlockPosition( {x: tileX, y: tileY} ) {
+        return {
+            x: Math.floor(tileX / MAP_WIDTH),
+            y: Math.floor(tileY / MAP_HEIGHT)
+        };
+    }
+
+    /*
+     function getCurrentBlockPosition(mouseX, mouseY) {
+        const tilePositions = getCurrentTilePosition(mouseX, mouseY);
+
+        return {
+            x: Math.floor(tilePositions.x / MAP_WIDTH),
+            y: Math.floor(tilePositions.y / MAP_HEIGHT)
+        };
+     }
+     */
+
+    /**
+     * Возвращает позиции текущего тайла (под курсором) в блоке.
+     *
+     * @param {number} tileX Позиция тайла X на сетке
+     * @param {number} tileY Позиция тайла Y на сетке
+     * @return {{x: number, y: number}}
+     */
+    function getCurrentTilePositionInBlock( {x: tileX, y: tileY} ) {
+        const result = {
+            x: 0,
+            y: 0
+        };
+
+        if (tileX < 0) {
+            result.x = (tileX % MAP_WIDTH + MAP_WIDTH) % MAP_WIDTH;
+        }
+        else {
+            result.x = tileX % MAP_WIDTH;
+        }
+
+        if (tileY < 0) {
+            result.y = (tileY % MAP_HEIGHT + MAP_HEIGHT) % MAP_HEIGHT;
+        }
+        else {
+            result.y = tileY % MAP_HEIGHT;
+        }
+
+        return result
+    }
+
+    function drawCurrentBlockGrid() {
+        const blockPos = getCurrentBlockPosition(getCurrentTilePosition(p.mouseX, p.mouseY)),
+            curBlock = mapList.get(blockPos.x, blockPos.y),
+            strokeWeight = 1,
+            strokeWeightOffset = strokeWeight / 2
+        ;
+        if (!curBlock) {
+            return;
+        }
+        let x, y;
+        for (let i = 0; i <= MAP_HEIGHT; i++) {
+            for (let j = 0; j <= MAP_WIDTH; j++) {
+                if (j === 0) {
+                    y = pixelOffsetY + Math.round(tileSizeZoomed * i + adjBlockHeight * curBlock.y - strokeWeightOffset);
+
+                    p.stroke(0, 60);
+                    p.strokeWeight(strokeWeight);
+
+                    p.line(
+                        pixelOffsetX + Math.round(adjBlockWidth * curBlock.x - strokeWeightOffset),
+                        y,
+                        pixelOffsetX + Math.round(adjBlockWidth * (curBlock.x + 1) - strokeWeightOffset),
+                        y
+                    );
+                }
+                if (i === 0) {
+                    x = pixelOffsetX + Math.round(tileSizeZoomed * j + adjBlockWidth * curBlock.x - strokeWeightOffset);
+
+                    p.stroke(0, 60);
+                    p.strokeWeight(strokeWeight);
+
+                    p.line(
+                        x,
+                        pixelOffsetY + Math.round(adjBlockHeight * curBlock.y - strokeWeightOffset),
+                        x,
+                        pixelOffsetY + Math.round(adjBlockHeight * (curBlock.y + 1) - strokeWeightOffset)
+                    );
+                }
+            }
         }
     }
 }

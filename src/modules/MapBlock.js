@@ -21,8 +21,7 @@ export default class MapBlock {
         const width = MAP_WIDTH * TILE_SIZE,
             height = MAP_HEIGHT * TILE_SIZE
         ;
-        let x, y, tileImage,
-            transparencyLevel = 128;
+        let x, y, tileImage;
 
         if (!this.graphicsBuffer) {
             this.graphicsBuffer = p5.createGraphics(width, height);
@@ -30,15 +29,7 @@ export default class MapBlock {
 
         const p = this.graphicsBuffer;
 
-        p.fill(255);
-        p.stroke(0);
-        p.strokeWeight(2);
-        p.rect(
-            0,
-            0,
-            width,
-            height,
-        );
+        p.background(250);
 
         // Проанализировать и нарисовать сверху поля необходимые тайлы
         for (let i = 0; i < MAP_HEIGHT; i++) {
@@ -52,19 +43,6 @@ export default class MapBlock {
                     if (tileImage) {
                         p.image(tileImage, x, y, TILE_SIZE, TILE_SIZE)
                     }
-                }
-
-                if (x === 0) {
-                    p.stroke(0, transparencyLevel);
-                    p.strokeWeight(1);
-
-                    p.line(0, y, width, y);
-                }
-                if (y === 0) {
-                    p.stroke(0, transparencyLevel);
-                    p.strokeWeight(1);
-
-                    p.line(x, 0, x, height);
                 }
             }
         }
