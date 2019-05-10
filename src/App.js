@@ -54,6 +54,14 @@ class App extends Component {
                     {sequence: 'ctrl', action: 'keydown'},
                     {sequence: 'ctrl', action: 'keyup'},
                 ],
+                spacePressed: [
+                    {sequence: 'space', action: 'keydown'},
+                    {sequence: 'space', action: 'keyup'},
+                ],
+                shiftPressed: [
+                    {sequence: 'shift', action: 'keydown'},
+                    {sequence: 'shift', action: 'keyup'},
+                ],
             },
         };
         this.hotKeyHandlers = {
@@ -93,6 +101,24 @@ class App extends Component {
 
                     this.setState({
                         hotKeyActions: {sketchMain: {ctrlPressed: e.type !== 'keyup'}}
+                    });
+                },
+                spacePressed: (e) => {
+                    if (e.repeat) {
+                        return;
+                    }
+
+                    this.setState({
+                        hotKeyActions: {sketchMain: {spacePressed: e.type !== 'keyup'}}
+                    });
+                },
+                shiftPressed: (e) => {
+                    if (e.repeat) {
+                        return;
+                    }
+
+                    this.setState({
+                        hotKeyActions: {sketchMain: {shiftPressed: e.type !== 'keyup'}}
                     });
                 },
             },

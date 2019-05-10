@@ -108,6 +108,17 @@ export default function sketch(p) {
         else {
             wheelMode = MOUSE_WHEEL_MODE.tileRotation;
         }
+
+        if (props.hotKeyActions.shiftPressed) {
+            cursorMode = CURSOR_MODE.erase;
+        }
+        else if (props.hotKeyActions.spacePressed) {
+            cursorMode = CURSOR_MODE.drag;
+        }
+        else {
+            cursorMode = CURSOR_MODE.draw;
+        }
+        updateCursor();
     };
 
     p.draw = function () {
@@ -116,7 +127,6 @@ export default function sketch(p) {
         }
 
         analyzeMouseGlobal();
-        analyzeKeyboard();
 
         let blockPos = getCurrentBlockPosition(getCurrentTilePosition(p.mouseX, p.mouseY)),
             currentBlock = mapList.get(blockPos.x, blockPos.y);
@@ -139,20 +149,6 @@ export default function sketch(p) {
             analyzeDrag();
         }
     };
-
-    function analyzeKeyboard() {
-        // Space
-        if (p.keyIsDown(32)) {
-            cursorMode = CURSOR_MODE.drag;
-        }
-        else if (p.keyIsDown(p.SHIFT)) {
-            cursorMode = CURSOR_MODE.erase;
-        }
-        else {
-            cursorMode = CURSOR_MODE.draw;
-        }
-        updateCursor();
-    }
 
     /**
      * Обновить вид курсора в зависимости от текущего действия пользователя
@@ -333,10 +329,12 @@ export default function sketch(p) {
 
     p.mousePressed = function (event) {
         dragging = true;
+        updateCursor();
     };
 
     p.mouseReleased = function (event) {
         dragging = false;
+        updateCursor();
     };
 
     /**
