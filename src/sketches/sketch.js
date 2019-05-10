@@ -4,19 +4,22 @@ import {
     MAP_WIDTH,
     MAP_HEIGHT,
     MOUSE_WHEEL_MODE,
+    CURSOR_MODE,
 } from '../modules/constants';
 
 import loadImageMemo from '../modules/loadImageMemo';
+import ExpandButtons from '../modules/ExpandButtons';
+
+/** Для использования p5.createImg в ExpandButtons */
+import "react-p5-wrapper/node_modules/p5/lib/addons/p5.dom";
 
 export default function sketch(p) {
     let loopAllowed = false,
         zoomLevel = 1,
-        dragMode = "move",
-        mapList = new MapList(),
+        cursorMode = CURSOR_MODE.draw,
         mapMax = {x: 0, y: 0},
         pixelOffsetX = 0,
         pixelOffsetY = 0,
-        movingCanvas = false,
         dragging = false,
         showExpandButtons = true,
 
@@ -29,6 +32,10 @@ export default function sketch(p) {
         tileImage = null,
         wheelMode = MOUSE_WHEEL_MODE.tileRotation
     ;
+    const mapList = new MapList(),
+        expandButtons = new ExpandButtons(p)
+    ;
+
     p.setup = function () {
         const parentEl = document.getElementById('mapEditor');
         p.createCanvas(parentEl.clientWidth, parentEl.clientHeight);
@@ -48,6 +55,38 @@ export default function sketch(p) {
             .createBlock(0, 0)
             .renderToBuffer(p)
         ;
+        expandButtons.setOnClick((e, inBlockPositionName, block) => {
+            if (!block) {
+                return;
+            }
+
+            let newBlockX = block.x,
+                newBlockY = block.y
+            ;
+
+            switch(inBlockPositionName) {
+                case "left":
+                    newBlockX--;
+                    break;
+                case "right":
+                    newBlockX++;
+                    break;
+                case "top":
+                    newBlockY--;
+                    break;
+                case "bottom":
+                    newBlockY++;
+                    break;
+
+                default:
+                    throw new Error('No such direction label:', inBlockPositionName);
+            }
+
+            mapList
+                .createBlock(newBlockX, newBlockY)
+                .renderToBuffer(p)
+            ;
+        });
     };
 
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
@@ -79,7 +118,10 @@ export default function sketch(p) {
         analyzeMouseGlobal();
         analyzeKeyboard();
 
-        renderBoard();
+        let blockPos = getCurrentBlockPosition(getCurrentTilePosition(p.mouseX, p.mouseY)),
+            currentBlock = mapList.get(blockPos.x, blockPos.y);
+
+        renderBoard(currentBlock);
 
         if (ghostFigure) {
             tileImage = loadImageMemo(ghostFigure.img, p);
@@ -101,16 +143,42 @@ export default function sketch(p) {
     function analyzeKeyboard() {
         // Space
         if (p.keyIsDown(32)) {
-            dragMode = "move";
-            if (!movingCanvas) p.cursor('grab');
+            cursorMode = CURSOR_MODE.drag;
         }
         else if (p.keyIsDown(p.SHIFT)) {
-            dragMode = "erase";
-            p.cursor('crosshair');
+            cursorMode = CURSOR_MODE.erase;
         }
         else {
-            dragMode = "draw";
-            p.cursor('default');
+            cursorMode = CURSOR_MODE.draw;
+        }
+        updateCursor();
+    }
+
+    /**
+     * Обновить вид курсора в зависимости от текущего действия пользователя
+     */
+    function updateCursor() {
+        switch (cursorMode) {
+            case CURSOR_MODE.draw:
+                p.cursor('default');
+                break;
+
+            case CURSOR_MODE.drag:
+                if (dragging) {
+                    p.cursor('grabbing');
+                }
+                else {
+                    p.cursor('grab');
+                }
+                break;
+
+            case CURSOR_MODE.erase:
+                p.cursor('crosshair');
+                break;
+
+            case CURSOR_MODE.interact:
+                p.cursor('pointer');
+                break;
         }
     }
 
@@ -124,7 +192,7 @@ export default function sketch(p) {
         }
 
         ghostFigure = null;
-        if (dragMode === "draw" && activeImageLabel) {
+        if (cursorMode === CURSOR_MODE.draw && activeImageLabel) {
             const tilePosition = getCurrentTilePosition(p.mouseX, p.mouseY);
 
             ghostFigure = {
@@ -138,12 +206,16 @@ export default function sketch(p) {
         return val * TILE_SIZE * zoomLevel;
     }
 
-    function renderBoard() {
+    function renderBoard(currentBlock) {
         p.background(150);
 
         mapList.loopThrough(drawBlock);
 
-        drawCurrentBlockGrid();
+        drawBlockGrid(currentBlock);
+
+        if (showExpandButtons) {
+            drawBlockExpandButtons(currentBlock);
+        }
     }
 
     // p.windowResized = function () {
@@ -225,7 +297,7 @@ export default function sketch(p) {
         const tilePosition = getCurrentTilePosition(p.mouseX, p.mouseY);
         const {x: mapBlockX, y: mapBlockY} = getCurrentBlockPosition(tilePosition);
 
-        if (dragMode !== "move"
+        if (cursorMode !== CURSOR_MODE.drag
             && !mapList.blockExists(mapBlockX, mapBlockY)
         ) {
             return;
@@ -234,12 +306,10 @@ export default function sketch(p) {
         const block = mapList.get(mapBlockX, mapBlockY);
         const {x: currRow, y: currCol} = getCurrentTilePositionInBlock(tilePosition);
 
-        if (dragMode === "move") {
-            p.cursor('grabbing');
-            movingCanvas = true;
+        if (cursorMode === CURSOR_MODE.drag) {
             pixelOffsetX += p.mouseX - p.pmouseX;
             pixelOffsetY += p.mouseY - p.pmouseY;
-        } else if (dragMode === "draw") {
+        } else if (cursorMode === CURSOR_MODE.draw) {
             if (activeImageLabel) {
                 if (block.tiles[currCol][currRow]) {
                     if (block.tiles[currCol][currRow].img === activeImageLabel) {
@@ -250,7 +320,7 @@ export default function sketch(p) {
                 block.tiles[currCol][currRow] = {img: activeImageLabel};
                 block.renderToBuffer(p);
             }
-        } else if (dragMode === "erase") {
+        } else if (cursorMode === CURSOR_MODE.erase) {
             if (block.tiles[currCol][currRow]) {
                 block.tiles[currCol][currRow] = null;
                 block.renderToBuffer(p)
@@ -266,7 +336,6 @@ export default function sketch(p) {
     };
 
     p.mouseReleased = function (event) {
-        movingCanvas = false;
         dragging = false;
     };
 
@@ -281,105 +350,6 @@ export default function sketch(p) {
             adjBlockWidth,
             adjBlockHeight
         );
-
-        if (showExpandButtons) {
-            drawBlockButtons(block);
-        }
-    }
-
-    function drawBlockButtons(block) {
-        for (let label in block.connections) {
-            if (block.connections[label]) {
-                continue;
-            }
-
-            p.push();
-            p.fill(200);
-            p.strokeWeight(1);
-            p.stroke(0, 20);
-            // p.translate(p.width / 2, p.height / 2);
-
-            const blockPixelOffsetX = pixelOffsetX + adjBlockWidth * block.x;
-            const blockPixelOffsetY = pixelOffsetY + adjBlockHeight * block.y;
-
-            let mouseXOffset,
-                mouseYOffset
-            ;
-
-            switch(label) {
-                case "left":
-                    p.translate(-20 + blockPixelOffsetX, adjBlockHeight / 2 + blockPixelOffsetY);
-                    mouseXOffset = -20 + blockPixelOffsetX;
-                    mouseYOffset = adjBlockHeight / 2 + blockPixelOffsetY;
-
-                    p.rotate(-p.PI / 2);
-                    break;
-                case "right":
-                    p.translate(adjBlockWidth + blockPixelOffsetX + 20, adjBlockHeight / 2 + blockPixelOffsetY);
-                    mouseXOffset = adjBlockWidth + blockPixelOffsetX + 20;
-                    mouseYOffset = adjBlockHeight / 2 + blockPixelOffsetY;
-
-                    p.rotate(p.PI / 2);
-                    break;
-                case "up":
-                    p.translate(adjBlockWidth / 2 + blockPixelOffsetX, -20 + blockPixelOffsetY);
-                    mouseXOffset = adjBlockWidth / 2 + blockPixelOffsetX;
-                    mouseYOffset = -20 + blockPixelOffsetY;
-                    break;
-                case "down":
-                    p.translate(adjBlockWidth / 2 + blockPixelOffsetX, 20 + blockPixelOffsetY + adjBlockHeight);
-                    mouseXOffset = adjBlockWidth / 2 + blockPixelOffsetX;
-                    mouseYOffset = 20 + blockPixelOffsetY + adjBlockHeight;
-
-                    p.rotate(p.PI);
-                    break;
-
-                default:
-                    throw new Error('No such direciton label:', label);
-            }
-            p.triangle(-20, 10, 0, -10, 20, 10);
-            // FIXME:
-            // if (ptInTriangle(p.mouseX - mouseXOffset, p.mouseY - mouseYOffset, -20, 10, 0, -10, 20, 10)) {
-            // Временно для ускорения написания вместо просчитывания столкновения мыши с треугольником использую круглый хитбокс
-            // Код выше РАБОТАЕТ, но всегда предпологает, что треугольник смотрит ВВЕРХ
-            if (p.dist(p.mouseX - mouseXOffset, p.mouseY - mouseYOffset, 0, 0) <= 18) {
-                if (dragMode === "draw") {
-                    p.cursor('pointer');
-                }
-
-                if (p.mouseIsPressed) {
-                    console.log('Intersection w/', label, 'on block x:', block.x, 'y:', block.y);
-                    let newBlockX = block.x,
-                        newBlockY = block.y
-                    ;
-
-                    switch(label) {
-                        case "left":
-                            newBlockX--;
-                            break;
-                        case "right":
-                            newBlockX++;
-                            break;
-                        case "up":
-                            newBlockY--;
-                            break;
-                        case "down":
-                            newBlockY++;
-                            break;
-
-                        default:
-                            throw new Error('No such direciton label:', label);
-                    }
-
-                    mapList
-                        .createBlock(newBlockX, newBlockY)
-                        .renderToBuffer(p)
-                    ;
-                }
-            }
-
-            p.pop();
-        }
     }
 
     /**
@@ -451,46 +421,59 @@ export default function sketch(p) {
         return result
     }
 
-    function drawCurrentBlockGrid() {
-        const blockPos = getCurrentBlockPosition(getCurrentTilePosition(p.mouseX, p.mouseY)),
-            curBlock = mapList.get(blockPos.x, blockPos.y),
-            strokeWeight = 1,
-            strokeWeightOffset = strokeWeight / 2
-        ;
-        if (!curBlock) {
+    function drawBlockGrid(block) {
+        if (!block) {
             return;
         }
+
+        const strokeWeight = 1,
+            strokeWeightOffset = strokeWeight / 2
+        ;
+
         let x, y;
         for (let i = 0; i <= MAP_HEIGHT; i++) {
             for (let j = 0; j <= MAP_WIDTH; j++) {
                 if (j === 0) {
-                    y = pixelOffsetY + Math.round(tileSizeZoomed * i + adjBlockHeight * curBlock.y - strokeWeightOffset);
+                    y = pixelOffsetY + Math.round(tileSizeZoomed * i + adjBlockHeight * block.y - strokeWeightOffset);
 
                     p.stroke(0, 60);
                     p.strokeWeight(strokeWeight);
 
                     p.line(
-                        pixelOffsetX + Math.round(adjBlockWidth * curBlock.x - strokeWeightOffset),
+                        pixelOffsetX + Math.round(adjBlockWidth * block.x - strokeWeightOffset),
                         y,
-                        pixelOffsetX + Math.round(adjBlockWidth * (curBlock.x + 1) - strokeWeightOffset),
+                        pixelOffsetX + Math.round(adjBlockWidth * (block.x + 1) - strokeWeightOffset),
                         y
                     );
                 }
                 if (i === 0) {
-                    x = pixelOffsetX + Math.round(tileSizeZoomed * j + adjBlockWidth * curBlock.x - strokeWeightOffset);
+                    x = pixelOffsetX + Math.round(tileSizeZoomed * j + adjBlockWidth * block.x - strokeWeightOffset);
 
                     p.stroke(0, 60);
                     p.strokeWeight(strokeWeight);
 
                     p.line(
                         x,
-                        pixelOffsetY + Math.round(adjBlockHeight * curBlock.y - strokeWeightOffset),
+                        pixelOffsetY + Math.round(adjBlockHeight * block.y - strokeWeightOffset),
                         x,
-                        pixelOffsetY + Math.round(adjBlockHeight * (curBlock.y + 1) - strokeWeightOffset)
+                        pixelOffsetY + Math.round(adjBlockHeight * (block.y + 1) - strokeWeightOffset)
                     );
                 }
             }
         }
+    }
+
+    function drawBlockExpandButtons(block) {
+        if (!block) {
+            return;
+        }
+
+        expandButtons.setCurrentBlock(block);
+        expandButtons.setOffsets(
+            pixelOffsetX + adjBlockWidth * block.x,
+            pixelOffsetY + adjBlockHeight * block.y,
+            adjBlockWidth
+        );
     }
 }
 

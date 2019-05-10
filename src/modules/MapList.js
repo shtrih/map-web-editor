@@ -67,11 +67,11 @@ export default class MapList {
     updateConnections(x, y) {
         const b = this.get(x, y);
         if (b) {
-            b.connections = {
-                left:  this.blockExists(x - 1, y),
+            b.hasSibling = {
+                top:   this.blockExists(x, y - 1),
                 right: this.blockExists(x + 1, y),
-                up:    this.blockExists(x, y - 1),
-                down:  this.blockExists(x, y + 1)
+                bottom:this.blockExists(x, y + 1),
+                left:  this.blockExists(x - 1, y),
             }
         }
     }

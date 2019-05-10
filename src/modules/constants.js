@@ -6,5 +6,11 @@ export const TILE_SIZE = 100,
     MOUSE_WHEEL_MODE = {
         tileRotation: 1,
         zoom: 2
+    },
+    CURSOR_MODE = {
+        drag: 'drag',
+        draw: 'draw',
+        erase: 'erase',
+        interact: 'interact'
     }
 ;
