@@ -79,7 +79,7 @@ export default function sketch(p) {
                     break;
 
                 default:
-                    throw new Error('No such direction label:', inBlockPositionName);
+                    throw new Error('No such direction label: ' + inBlockPositionName);
             }
 
             mapList
@@ -219,6 +219,12 @@ export default function sketch(p) {
     // };
 
     p.mouseWheel = function (event) {
+        // Prevent browser page zoom (ctrl+scroll)
+        if (MOUSE_WHEEL_MODE.zoom === wheelMode) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
         if (p.mouseX < 0
             || p.mouseX >= p.width
             || p.mouseY < 0
@@ -226,10 +232,6 @@ export default function sketch(p) {
         ) {
             return;
         }
-
-        // Prevent browser page zoom (ctrl+scroll)
-        event.preventDefault();
-        event.stopPropagation();
 
         switch (wheelMode) {
             case MOUSE_WHEEL_MODE.zoom:

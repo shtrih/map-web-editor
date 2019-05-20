@@ -40,8 +40,6 @@ class App extends Component {
             },
             editor: {
                 save: ['ctrl+s', 'ctrl+ы'],
-            },
-            canvas: {
                 zoomIn: [
                     {sequence: 'up', action: 'keydown'},
                     {sequence: 'up', action: 'keyup'},
@@ -54,6 +52,8 @@ class App extends Component {
                     {sequence: 'ctrl', action: 'keydown'},
                     {sequence: 'ctrl', action: 'keyup'},
                 ],
+            },
+            canvas: {
                 spacePressed: [
                     {sequence: 'space', action: 'keydown'},
                     {sequence: 'space', action: 'keyup'},
@@ -79,8 +79,6 @@ class App extends Component {
 
                     console.log('Saved map!');
                 },
-            },
-            canvas: {
                 zoomIn: (e) => {
                     this.setState({
                         hotKeyActions: {sketchMain: {zoomIn: e.type !== 'keyup'}}
@@ -103,6 +101,8 @@ class App extends Component {
                         hotKeyActions: {sketchMain: {ctrlPressed: e.type !== 'keyup'}}
                     });
                 },
+            },
+            canvas: {
                 spacePressed: (e) => {
                     if (e.repeat) {
                         return;
