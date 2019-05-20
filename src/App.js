@@ -52,8 +52,6 @@ class App extends Component {
                     {sequence: 'ctrl', action: 'keydown'},
                     {sequence: 'ctrl', action: 'keyup'},
                 ],
-            },
-            canvas: {
                 spacePressed: [
                     {sequence: 'space', action: 'keydown'},
                     {sequence: 'space', action: 'keyup'},
@@ -101,8 +99,6 @@ class App extends Component {
                         hotKeyActions: {sketchMain: {ctrlPressed: e.type !== 'keyup'}}
                     });
                 },
-            },
-            canvas: {
                 spacePressed: (e) => {
                     if (e.repeat) {
                         return;
@@ -201,16 +197,11 @@ class App extends Component {
                 >
                     <div id="workscreen">
                         <div id="mapEditor">
-                            <HotKeys
-                                keyMap={this.hotKeys.canvas}
-                                handlers={this.hotKeyHandlers.canvas}
-                            >
-                                <P5Wrapper
-                                    sketch={sketchMain}
-                                    activeAsset={this.state.activeAsset}
-                                    hotKeyActions={{...this.state.hotKeyActions.sketchMain}}
-                                />
-                            </HotKeys>
+                            <P5Wrapper
+                                sketch={sketchMain}
+                                activeAsset={this.state.activeAsset}
+                                hotKeyActions={{...this.state.hotKeyActions.sketchMain}}
+                            />
                         </div>
 
                         <div id="sidePanel">

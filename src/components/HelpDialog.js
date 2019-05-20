@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { getApplicationKeyMap } from 'react-hotkeys';
 import M from 'materialize-css';
+
+import { SHORTCUTS } from '../modules/helpDialog';
 
 const propTypes = {
     onClose: PropTypes.func,
@@ -30,8 +31,6 @@ export default class HelpDialog extends React.Component {
     }
 
     render() {
-        const keyMap = getApplicationKeyMap();
-
         return (
             <div className="modal help-dialog">
                 <div className="modal-content">
@@ -41,16 +40,13 @@ export default class HelpDialog extends React.Component {
 
                     <table>
                         <tbody>
-                        {Object.keys(keyMap).map((actionName) => (
-                            <tr key={actionName}>
+                        {SHORTCUTS.map((action, i) => (
+                            <tr key={i}>
                                 <td>
-                                    {actionName}
+                                    {action.description}
                                 </td>
                                 <td>
-                                    {keyMap[actionName]
-                                        .filter((v,i,a) => a.indexOf(v) === i)
-                                        .map((keySequence) => <code key={keySequence}>{keySequence}</code>)
-                                    }
+                                    {action.sequences.map((keySequence) => <code key={keySequence}>{keySequence}</code>)}
                                 </td>
                             </tr>
                         ))}
