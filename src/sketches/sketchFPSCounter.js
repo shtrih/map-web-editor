@@ -14,15 +14,21 @@ export default function sketchFPSCounter(p) {
     };
 
     p.myCustomRedrawAccordingToNewPropsHandler = function (props) {
-        x = +(props.x || x);
-        y = +(props.y || y);
-        width = +(props.width || width);
-        height = +(props.height || height);
+        if ((props.x !== undefined && props.x != x)
+            || (props.y !== undefined && props.y != y)
+            || (props.width !== undefined && props.width != width)
+            || (props.height !== undefined && props.height != height)
+        ) {
+            x = +props.x;
+            y = +props.y;
+            width = +props.width;
+            height = +props.height;
 
-        p.resizeCanvas(width + x, height + y);
-        p.background(255);
+            p.resizeCanvas(width + x, height + y);
+            p.background(255);
 
-        counter = new FPSCounter(x, y, width, height, p);
+            counter = new FPSCounter(x, y, width, height, p);
+        }
     };
 
     p.draw = function () {

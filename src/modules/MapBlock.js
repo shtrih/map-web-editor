@@ -10,6 +10,12 @@ export default class MapBlock {
         this.x = x;
         this.y = y;
         this.graphicsBuffer = null;
+        this.hasSibling = {
+            top:   false,
+            right: false,
+            bottom:false,
+            left:  false,
+        };
 
         this.tiles = [];
         for (let i = 0; i < MAP_HEIGHT; i++) {

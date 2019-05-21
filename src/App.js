@@ -8,6 +8,7 @@ import AssetGroups from './components/AssetGroups';
 import AssetObjects from './components/AssetObjects';
 import Tools from './components/Tools';
 import Layers from './components/Layers';
+import HelpDialog from './components/HelpDialog';
 
 import {
     HotKeys,
@@ -23,6 +24,102 @@ class App extends Component {
     constructor(props) {
         super(props);
 
+        hotKeyConfigure({
+            logLevel: 'info',
+
+            /**
+             * В версии 2.0.0-pre5 не работает обработка keyup для клавиш ctrl и других, если эта опция устанвлена в true.
+             * @see https://github.com/greena13/react-hotkeys/issues/166#issuecomment-488991845
+             */
+            simulateMissingKeyPressEvents: false,
+            stopEventPropagationAfterHandling: false,
+        });
+        this.hotKeys = {
+            application: {
+                help: ['?', ','],
+            },
+            editor: {
+                save: ['ctrl+s', 'ctrl+ы'],
+                zoomIn: [
+                    {sequence: 'up', action: 'keydown'},
+                    {sequence: 'up', action: 'keyup'},
+                ],
+                zoomOut: [
+                    {sequence: 'down', action: 'keydown'},
+                    {sequence: 'down', action: 'keyup'},
+                ],
+                ctrlPressed: [
+                    {sequence: 'ctrl', action: 'keydown'},
+                    {sequence: 'ctrl', action: 'keyup'},
+                ],
+                spacePressed: [
+                    {sequence: 'space', action: 'keydown'},
+                    {sequence: 'space', action: 'keyup'},
+                ],
+                shiftPressed: [
+                    {sequence: 'shift', action: 'keydown'},
+                    {sequence: 'shift', action: 'keyup'},
+                ],
+            },
+        };
+        this.hotKeyHandlers = {
+            application: {
+                help: (e) => {
+                    this.setState({
+                        showHelpDialog: true
+                    });
+                },
+            },
+            editor: {
+                save: e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    console.log('Saved map!');
+                },
+                zoomIn: (e) => {
+                    this.setState({
+                        hotKeyActions: {sketchMain: {zoomIn: e.type !== 'keyup'}}
+                    });
+                },
+                zoomOut: (e) => {
+                    this.setState({
+                        hotKeyActions: {sketchMain: {zoomOut: e.type !== 'keyup'}}
+                    });
+                },
+                ctrlPressed: (e) => {
+                    /**
+                     * @see https://github.com/ccampbell/mousetrap/issues/128#issuecomment-102558797
+                     */
+                    if (e.repeat) {
+                        return;
+                    }
+
+                    this.setState({
+                        hotKeyActions: {sketchMain: {ctrlPressed: e.type !== 'keyup'}}
+                    });
+                },
+                spacePressed: (e) => {
+                    if (e.repeat) {
+                        return;
+                    }
+
+                    this.setState({
+                        hotKeyActions: {sketchMain: {spacePressed: e.type !== 'keyup'}}
+                    });
+                },
+                shiftPressed: (e) => {
+                    if (e.repeat) {
+                        return;
+                    }
+
+                    this.setState({
+                        hotKeyActions: {sketchMain: {shiftPressed: e.type !== 'keyup'}}
+                    });
+                },
+            },
+        };
+
         this.onSelectAssetGroup = this.onSelectAssetGroup.bind(this);
         this.onSelectAsset = this.onSelectAsset.bind(this);
 
@@ -30,7 +127,14 @@ class App extends Component {
             inMainMenu: true,
             mainMenuState: null,
             activeAssetGroup: null,
-            activeAsset: null
+            activeAsset: null,
+            hotKeyActions: {
+                sketchMain: {
+                    zoomIn: false,
+                    zoomOut: false
+                }
+            },
+            showHelpDialog: false,
         };
     }
 
@@ -82,42 +186,56 @@ class App extends Component {
         }
 
         return (
-            <div id="workscreen">
-                <div id="mapEditor">
-                    <P5Wrapper
-                        sketch={sketchMain}
-                        activeAsset={this.state.activeAsset}
-                    />
-                </div>
-
-                <div id="sidePanel">
-                    <div className="model-preview">
-                        <h3 className="center-align">3D model preview</h3>
-                        <P5Wrapper
-                            sketch={sketchFPSCounter}
-                            width="100"
-                            height="50"
-                        />
-                    </div>
-                    <div className="instruments">
-                        <Tools />
-                        <Layers />
-                    </div>
-                    <div className="asset-lists row">
-                        <div className="col s6">
-                            <h6>Группы обьектов</h6>
-                            <AssetGroups clickHandler={this.onSelectAssetGroup} />
-                        </div>
-                        <div className="col s6">
-                            <h6>Обьекты</h6>
-                            <AssetObjects
-                                objectsList={this.state.activeAssetGroup}
-                                clickHandler={this.onSelectAsset}
+            <React.Fragment>
+                <GlobalHotKeys
+                    keyMap={this.hotKeys.application}
+                    handlers={this.hotKeyHandlers.application}
+                />
+                <HotKeys
+                    keyMap={this.hotKeys.editor}
+                    handlers={this.hotKeyHandlers.editor}
+                >
+                    <div id="workscreen">
+                        <div id="mapEditor">
+                            <P5Wrapper
+                                sketch={sketchMain}
+                                activeAsset={this.state.activeAsset}
+                                hotKeyActions={{...this.state.hotKeyActions.sketchMain}}
                             />
                         </div>
+
+                        <div id="sidePanel">
+                            <div className="model-preview">
+                                <h3 className="center-align">3D model preview</h3>
+                                <P5Wrapper
+                                    sketch={sketchFPSCounter}
+                                    width="100"
+                                    height="50"
+                                />
+                            </div>
+                            <div className="instruments">
+                                <Tools />
+                                <Layers />
+                            </div>
+                            <div className="asset-lists row">
+                                <div className="col s6">
+                                    <h6>Группы обьектов</h6>
+                                    <AssetGroups clickHandler={this.onSelectAssetGroup} />
+                                </div>
+                                <div className="col s6">
+                                    <h6>Обьекты</h6>
+                                    <AssetObjects
+                                        objectsList={this.state.activeAssetGroup}
+                                        clickHandler={this.onSelectAsset}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {this.state.showHelpDialog && <HelpDialog onClose={() => this.setState({showHelpDialog: false})} />}
                     </div>
-                </div>
-            </div>
+                </HotKeys>
+            </React.Fragment>
         );
     }
 }
