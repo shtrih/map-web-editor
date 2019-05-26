@@ -26,7 +26,6 @@ export default function sketch(p) {
         /** @type {Tile} */
         ghostFigure = new Tile(p),
 
-        activeImageLabel = null,
         tileSizeZoomed = null,
         adjBlockWidth = null,
         adjBlockHeight = null,
@@ -94,8 +93,7 @@ export default function sketch(p) {
         console.log('myCustomRedrawAccordingToNewPropsHandler', props);
 
         if (props.activeAsset) {
-            if (activeImageLabel !== props.activeAsset.img) {
-                activeImageLabel = props.activeAsset.img;
+            if (ghostFigure.imageName !== props.activeAsset.img) {
                 ghostFigure.imageName = props.activeAsset.img;
                 ghostFigure.angle = 0;
             }
