@@ -3,7 +3,6 @@ import {
     MAP_WIDTH,
     TILE_SIZE
 } from './constants';
-import loadImageMemo from '../modules/loadImageMemo';
 
 export default class MapBlock {
     constructor(x, y) {
@@ -17,6 +16,7 @@ export default class MapBlock {
             left:  false,
         };
 
+        /** @type {Array<Array<Tile>>} */
         this.tiles = [];
         for (let i = 0; i < MAP_HEIGHT; i++) {
             this.tiles.push(new Array(MAP_WIDTH));
@@ -25,7 +25,8 @@ export default class MapBlock {
 
     renderToBuffer(p5) {
         const width = MAP_WIDTH * TILE_SIZE,
-            height = MAP_HEIGHT * TILE_SIZE
+            height = MAP_HEIGHT * TILE_SIZE,
+            tileHalfSize = TILE_SIZE / 2
         ;
         let x, y, tileImage;
 
@@ -37,7 +38,6 @@ export default class MapBlock {
 
         p.background(250);
 
-        // Проанализировать и нарисовать сверху поля необходимые тайлы
         for (let i = 0; i < MAP_HEIGHT; i++) {
             y = i * TILE_SIZE;
 
@@ -45,9 +45,14 @@ export default class MapBlock {
                 x = j * TILE_SIZE;
 
                 if (this.tiles[i][j]) {
-                    tileImage = loadImageMemo(this.tiles[i][j].img, p);
+                    tileImage = this.tiles[i][j].image;
                     if (tileImage) {
-                        p.image(tileImage, x, y, TILE_SIZE, TILE_SIZE)
+                        p.push();
+                        p.translate(x + tileHalfSize, y + tileHalfSize);
+                        p.angleMode(p.DEGREES);
+                        p.rotate(this.tiles[i][j].angle);
+                        p.image(tileImage, -tileHalfSize, -tileHalfSize, TILE_SIZE, TILE_SIZE);
+                        p.pop();
                     }
                 }
             }

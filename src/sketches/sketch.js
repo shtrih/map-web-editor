@@ -7,8 +7,8 @@ import {
     CURSOR_MODE,
 } from '../modules/constants';
 
-import loadImageMemo from '../modules/loadImageMemo';
 import ExpandButtons from '../modules/ExpandButtons';
+import Tile from '../modules/Tile';
 
 /** Для использования p5.createImg в ExpandButtons */
 import "react-p5-wrapper/node_modules/p5/lib/addons/p5.dom";
@@ -23,9 +23,9 @@ export default function sketch(p) {
         dragging = false,
         showExpandButtons = true,
 
-        ghostFigure = null,
+        /** @type {Tile} */
+        ghostFigure = new Tile(p),
 
-        activeImageLabel = null,
         tileSizeZoomed = null,
         adjBlockWidth = null,
         adjBlockHeight = null,
@@ -93,8 +93,10 @@ export default function sketch(p) {
         console.log('myCustomRedrawAccordingToNewPropsHandler', props);
 
         if (props.activeAsset) {
-            loadImageMemo(props.activeAsset.img, p);
-            activeImageLabel = props.activeAsset.img;
+            if (ghostFigure.imageName !== props.activeAsset.img) {
+                ghostFigure.imageName = props.activeAsset.img;
+                ghostFigure.angle = 0;
+            }
         }
         if (props.hotKeyActions.zoomIn) {
             zoom(true);
@@ -134,12 +136,19 @@ export default function sketch(p) {
         renderBoard(currentBlock);
 
         if (ghostFigure) {
-            tileImage = loadImageMemo(ghostFigure.img, p);
+            tileImage = ghostFigure.image;
             if (tileImage) {
                 // region 'Image Tint'
                 p.push();
                 p.tint(0, 255, 0, 128);
-                p.image(tileImage, adj(ghostFigure.x) + pixelOffsetX, adj(ghostFigure.y) + pixelOffsetY, tileSizeZoomed, tileSizeZoomed);
+                /** @see https://processing.org/tutorials/transform2d/ */
+                const tileHalfSize = tileSizeZoomed / 2;
+                // move the origin to the pivot point
+                p.translate(adj(ghostFigure.x) + pixelOffsetX + tileHalfSize, adj(ghostFigure.y) + pixelOffsetY + tileHalfSize);
+                p.angleMode(p.DEGREES);
+                p.rotate(ghostFigure.angle);
+                // and draw the image at the origin
+                p.image(tileImage, -tileHalfSize, -tileHalfSize, tileSizeZoomed, tileSizeZoomed);
                 p.pop();
                 // endregion
             }
@@ -187,14 +196,11 @@ export default function sketch(p) {
             return;
         }
 
-        ghostFigure = null;
-        if (cursorMode === CURSOR_MODE.draw && activeImageLabel) {
+        if (cursorMode === CURSOR_MODE.draw && ghostFigure.image) {
             const tilePosition = getCurrentTilePosition(p.mouseX, p.mouseY);
 
-            ghostFigure = {
-                img: activeImageLabel,
-                ...tilePosition
-            };
+            ghostFigure.x = tilePosition.x;
+            ghostFigure.y = tilePosition.y;
         }
     }
 
@@ -240,7 +246,13 @@ export default function sketch(p) {
                 break;
 
             case MOUSE_WHEEL_MODE.tileRotation:
+                if (ghostFigure) {
+                    ghostFigure.angle += 90 * (event.deltaY < 0 ? -1 : 1);
+                }
+                break;
+
             default:
+                console.error(`Unknown wheel mode: ${wheelMode}`);
         }
     };
 
@@ -308,14 +320,19 @@ export default function sketch(p) {
             pixelOffsetX += p.mouseX - p.pmouseX;
             pixelOffsetY += p.mouseY - p.pmouseY;
         } else if (cursorMode === CURSOR_MODE.draw) {
-            if (activeImageLabel) {
+            if (ghostFigure.imageName) {
                 if (block.tiles[currCol][currRow]) {
-                    if (block.tiles[currCol][currRow].img === activeImageLabel) {
+                    if (block.tiles[currCol][currRow].imageName === ghostFigure.imageName
+                        && block.tiles[currCol][currRow].angle === ghostFigure.angle
+                    ) {
                         return;
                     }
                 }
 
-                block.tiles[currCol][currRow] = {img: activeImageLabel};
+                block.tiles[currCol][currRow] = new Tile(p);
+                block.tiles[currCol][currRow].angle = ghostFigure.angle;
+                block.tiles[currCol][currRow].imageName = ghostFigure.imageName;
+
                 block.renderToBuffer(p);
             }
         } else if (cursorMode === CURSOR_MODE.erase) {
