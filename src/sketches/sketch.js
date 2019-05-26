@@ -322,14 +322,19 @@ export default function sketch(p) {
             pixelOffsetX += p.mouseX - p.pmouseX;
             pixelOffsetY += p.mouseY - p.pmouseY;
         } else if (cursorMode === CURSOR_MODE.draw) {
-            if (activeImageLabel) {
+            if (ghostFigure.imageName) {
                 if (block.tiles[currCol][currRow]) {
-                    if (block.tiles[currCol][currRow].img === activeImageLabel) {
+                    if (block.tiles[currCol][currRow].imageName === ghostFigure.imageName
+                        && block.tiles[currCol][currRow].angle === ghostFigure.angle
+                    ) {
                         return;
                     }
                 }
 
-                block.tiles[currCol][currRow] = {img: activeImageLabel};
+                block.tiles[currCol][currRow] = new Tile(p);
+                block.tiles[currCol][currRow].angle = ghostFigure.angle;
+                block.tiles[currCol][currRow].imageName = ghostFigure.imageName;
+
                 block.renderToBuffer(p);
             }
         } else if (cursorMode === CURSOR_MODE.erase) {
