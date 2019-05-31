@@ -15,13 +15,13 @@
 
 .layers .collection .eye {
     position: absolute;
-    top: 6px;
-    left: 4px;
+    top: 3px;
+    left: 6px;
     line-height: 0;
     padding: 1px;
     background: #fafafa;
     border: 1px solid #ddd;
-    color: #aaa;
+    color: #ccc;
     border-radius: 2px;
 }
 
@@ -30,14 +30,12 @@
     background-color: #eef;
 }
 
-.layers .collection .eye.active {
+.layers .collection .eye:active {
     border-color: #999;
     background: #dde;
     box-shadow: inset 1px 1px 0 0 #889;
-    color: #555;
 }
 
-.layers .collection .eye.active:hover {
-    border-color: #aaa;
-    background-color: #fafafa;
+.layers .collection .eye.active {
+    color: #555;
 }
