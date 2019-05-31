@@ -78,7 +78,7 @@ body {
     border-width: 0;
 }
 
-#sidePanel .collection .collection-item {
+.collection a.collection-item {
     padding: 6px 12px;
 }
 
