@@ -30,7 +30,7 @@ export default class Tile {
     }
 
     /**
-     * @return {p5.Image|boolean|null} Return p5.Image instance or {false} if image not loaded yet, {null} if image is not set
+     * @return {p5.Image|boolean|null} Return {p5.Image} instance or {false} if image not loaded yet, {null} if image is not set
      */
     get image() {
         if (!this._imageName) {
