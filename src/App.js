@@ -209,12 +209,29 @@ class App extends Component {
                                 <h3 className="center-align">3D model preview</h3>
                                 <P5Wrapper
                                     sketch={sketchFPSCounter}
-                                    width="100"
-                                    height="50"
+                                    width={100}
+                                    height={50}
                                 />
                             </div>
                             <div className="instruments">
-                                <Tools />
+                                <Tools>
+                                    <a className="create" title="Новая карта"><i className="material-icons">create</i></a>
+                                    <a className="load" title="Загрузить"><i className="material-icons">file_upload</i></a>
+                                    <a className="save" title="Сохранить" onClick={this.hotKeyHandlers.editor.save}>
+                                        <i className="material-icons">file_download</i>
+                                    </a>
+                                    <br/>
+                                    <a className="zoom-in" title="Увеличить масштаб" onClick={this.hotKeyHandlers.editor.zoomIn}>
+                                        <i className="material-icons">zoom_in</i>
+                                    </a>
+                                    <a className="zoom-out" title="Уменьшить масштаб" onClick={this.hotKeyHandlers.editor.zoomOut}>
+                                        <i className="material-icons">zoom_out</i>
+                                    </a>
+                                    <a className="clear-layer" title="Очистить слой"><i className="material-icons">delete_sweep</i></a>
+                                    <a className="help" title="Справка по горячим клавишам" onClick={this.hotKeyHandlers.application.help}>
+                                        <i className="material-icons">help_outline</i>
+                                    </a>
+                                </Tools>
                                 <Layers />
                             </div>
                             <div className="asset-lists row">
