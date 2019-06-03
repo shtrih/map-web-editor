@@ -8,7 +8,7 @@
     "prop-types": "^15.7.2",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
-    "react-hotkeys": "2.0.0-pre5",
+    "react-hotkeys": "2.0.0-pre7",
     "react-p5-wrapper": "^1.2.1",
     "react-scripts": "2.1.3"
   },

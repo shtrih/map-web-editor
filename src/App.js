@@ -31,7 +31,7 @@ class App extends Component {
              * В версии 2.0.0-pre5 не работает обработка keyup для клавиш ctrl и других, если эта опция устанвлена в true.
              * @see https://github.com/greena13/react-hotkeys/issues/166#issuecomment-488991845
              */
-            simulateMissingKeyPressEvents: false,
+            // simulateMissingKeyPressEvents: false,
             stopEventPropagationAfterHandling: false,
         });
         this.hotKeys = {
