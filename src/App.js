@@ -31,7 +31,7 @@ class App extends Component {
              * В версии 2.0.0-pre5 не работает обработка keyup для клавиш ctrl и других, если эта опция устанвлена в true.
              * @see https://github.com/greena13/react-hotkeys/issues/166#issuecomment-488991845
              */
-            simulateMissingKeyPressEvents: false,
+            // simulateMissingKeyPressEvents: false,
             stopEventPropagationAfterHandling: false,
         });
         this.hotKeys = {
@@ -122,6 +122,9 @@ class App extends Component {
 
         this.onSelectAssetGroup = this.onSelectAssetGroup.bind(this);
         this.onSelectAsset = this.onSelectAsset.bind(this);
+        this.startNew = this.startNew.bind(this);
+        this.handleNewClick = this.handleNewClick.bind(this);
+        this.handleLoadClick = this.handleLoadClick.bind(this);
 
         this.state = {
             inMainMenu: true,
@@ -156,6 +159,22 @@ class App extends Component {
         });
     }
 
+    handleNewClick() {
+        this.setState({
+            inMainMenu: true
+        }, this.startNew);
+    }
+
+    handleLoadClick() {
+        console.log('Load map!');
+    }
+
+    showConfirm(callback) {
+        if (window.confirm('Весь текущий несохранённый прогресс будет потерян. Продолжить?')) {
+            callback();
+        }
+    }
+
     render() {
         if (this.state.inMainMenu) {
             return (
@@ -173,8 +192,8 @@ class App extends Component {
                                         <p className="center">Создайте новый объект или загрузите существующий файл</p>
                                     </div>
                                     <div className="card-action center">
-                                        <a href="#!" onClick={() => this.startNew()}>Создать новый</a>
-                                        <a href="#!" onClick={() => this.setState({mainMenuState: "loadFile"})}>Загрузить</a>
+                                        <a href="#" onClick={this.startNew}>Создать новый</a>
+                                        <a href="#" onClick={this.handleLoadClick}>Загрузить</a>
                                     </div>
                                 </div>
                             </div>
@@ -209,12 +228,35 @@ class App extends Component {
                                 <h3 className="center-align">3D model preview</h3>
                                 <P5Wrapper
                                     sketch={sketchFPSCounter}
-                                    width="100"
-                                    height="50"
+                                    width={100}
+                                    height={50}
                                 />
                             </div>
                             <div className="instruments">
-                                <Tools />
+                                <Tools>
+                                    <a className="create" title="Новая карта" onClick={() => this.showConfirm(this.handleNewClick)}>
+                                        <i className="material-icons">create</i>
+                                    </a>
+                                    <a className="load" title="Загрузить" onClick={() => this.showConfirm(this.handleLoadClick)}>
+                                        <i className="material-icons">file_upload</i>
+                                    </a>
+                                    <a className="save" title="Сохранить" onClick={this.hotKeyHandlers.editor.save}>
+                                        <i className="material-icons">file_download</i>
+                                    </a>
+                                    <br/>
+                                    <a className="zoom-in" title="Увеличить масштаб" onClick={this.hotKeyHandlers.editor.zoomIn}>
+                                        <i className="material-icons">zoom_in</i>
+                                    </a>
+                                    <a className="zoom-out" title="Уменьшить масштаб" onClick={this.hotKeyHandlers.editor.zoomOut}>
+                                        <i className="material-icons">zoom_out</i>
+                                    </a>
+                                    <a className="clear-layer" title="Очистить слой">
+                                        <i className="material-icons">delete_sweep</i>
+                                    </a>
+                                    <a className="help" title="Справка по горячим клавишам" onClick={this.hotKeyHandlers.application.help}>
+                                        <i className="material-icons">help_outline</i>
+                                    </a>
+                                </Tools>
                                 <Layers />
                             </div>
                             <div className="asset-lists row">

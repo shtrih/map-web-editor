@@ -11,7 +11,7 @@ import ExpandButtons from '../modules/ExpandButtons';
 import Tile from '../modules/Tile';
 
 /** Для использования p5.createImg в ExpandButtons */
-import "react-p5-wrapper/node_modules/p5/lib/addons/p5.dom";
+import "p5/lib/addons/p5.dom";
 
 export default function sketch(p) {
     let loopAllowed = false,
