@@ -122,6 +122,9 @@ class App extends Component {
 
         this.onSelectAssetGroup = this.onSelectAssetGroup.bind(this);
         this.onSelectAsset = this.onSelectAsset.bind(this);
+        this.startNew = this.startNew.bind(this);
+        this.handleNewClick = this.handleNewClick.bind(this);
+        this.handleLoadClick = this.handleLoadClick.bind(this);
 
         this.state = {
             inMainMenu: true,
@@ -156,6 +159,22 @@ class App extends Component {
         });
     }
 
+    handleNewClick() {
+        this.setState({
+            inMainMenu: true
+        }, this.startNew);
+    }
+
+    handleLoadClick() {
+        console.log('Load map!');
+    }
+
+    showConfirm(callback) {
+        if (window.confirm('Весь текущий несохранённый прогресс будет потерян. Продолжить?')) {
+            callback();
+        }
+    }
+
     render() {
         if (this.state.inMainMenu) {
             return (
@@ -173,8 +192,8 @@ class App extends Component {
                                         <p className="center">Создайте новый объект или загрузите существующий файл</p>
                                     </div>
                                     <div className="card-action center">
-                                        <a href="#!" onClick={() => this.startNew()}>Создать новый</a>
-                                        <a href="#!" onClick={() => this.setState({mainMenuState: "loadFile"})}>Загрузить</a>
+                                        <a href="#" onClick={this.startNew}>Создать новый</a>
+                                        <a href="#" onClick={this.handleLoadClick}>Загрузить</a>
                                     </div>
                                 </div>
                             </div>
@@ -215,8 +234,12 @@ class App extends Component {
                             </div>
                             <div className="instruments">
                                 <Tools>
-                                    <a className="create" title="Новая карта"><i className="material-icons">create</i></a>
-                                    <a className="load" title="Загрузить"><i className="material-icons">file_upload</i></a>
+                                    <a className="create" title="Новая карта" onClick={() => this.showConfirm(this.handleNewClick)}>
+                                        <i className="material-icons">create</i>
+                                    </a>
+                                    <a className="load" title="Загрузить" onClick={() => this.showConfirm(this.handleLoadClick)}>
+                                        <i className="material-icons">file_upload</i>
+                                    </a>
                                     <a className="save" title="Сохранить" onClick={this.hotKeyHandlers.editor.save}>
                                         <i className="material-icons">file_download</i>
                                     </a>
@@ -227,7 +250,9 @@ class App extends Component {
                                     <a className="zoom-out" title="Уменьшить масштаб" onClick={this.hotKeyHandlers.editor.zoomOut}>
                                         <i className="material-icons">zoom_out</i>
                                     </a>
-                                    <a className="clear-layer" title="Очистить слой"><i className="material-icons">delete_sweep</i></a>
+                                    <a className="clear-layer" title="Очистить слой">
+                                        <i className="material-icons">delete_sweep</i>
+                                    </a>
                                     <a className="help" title="Справка по горячим клавишам" onClick={this.hotKeyHandlers.application.help}>
                                         <i className="material-icons">help_outline</i>
                                     </a>
